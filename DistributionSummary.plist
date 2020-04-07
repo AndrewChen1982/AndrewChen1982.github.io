@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Taiwansugar.ipa</key>
+	<array>
+		<dict>
+			<key>architectures</key>
+			<array>
+				<string>arm64</string>
+			</array>
+			<key>certificate</key>
+			<dict>
+				<key>SHA1</key>
+				<string>0A1DD920296D65216E0AB5392A0097CC9882A3BB</string>
+				<key>dateExpires</key>
+				<string>2023/2/8</string>
+				<key>type</key>
+				<string>iOS Distribution</string>
+			</dict>
+			<key>embeddedBinaries</key>
+			<array>
+				<dict>
+					<key>architectures</key>
+					<array>
+						<string>arm64</string>
+					</array>
+					<key>certificate</key>
+					<dict>
+						<key>SHA1</key>
+						<string>0A1DD920296D65216E0AB5392A0097CC9882A3BB</string>
+						<key>dateExpires</key>
+						<string>2023/2/8</string>
+						<key>type</key>
+						<string>iOS Distribution</string>
+					</dict>
+					<key>name</key>
+					<string>FBLPromises.framework</string>
+					<key>team</key>
+					<dict>
+						<key>id</key>
+						<string>34MFMY4K35</string>
+						<key>name</key>
+						<string>TAIWAN SUGAR CORPORATION</string>
+					</dict>
+				</dict>
+				<dict>
+					<key>architectures</key>
+					<array>
+						<string>arm64</string>
+					</array>
+					<key>certificate</key>
+					<dict>
+						<key>SHA1</key>
+						<string>0A1DD920296D65216E0AB5392A0097CC9882A3BB</string>
+						<key>dateExpires</key>
+						<string>2023/2/8</string>
+						<key>type</key>
+						<string>iOS Distribution</string>
+					</dict>
+					<key>name</key>
+					<string>GoogleUtilities.framework</string>
+					<key>team</key>
+					<dict>
+						<key>id</key>
+						<string>34MFMY4K35</string>
+						<key>name</key>
+						<string>TAIWAN SUGAR CORPORATION</string>
+					</dict>
+				</dict>
+				<dict>
+					<key>architectures</key>
+					<array>
+						<string>arm64</string>
+					</array>
+					<key>certificate</key>
+					<dict>
+						<key>SHA1</key>
+						<string>0A1DD920296D65216E0AB5392A0097CC9882A3BB</string>
+						<key>dateExpires</key>
+						<string>2023/2/8</string>
+						<key>type</key>
+						<string>iOS Distribution</string>
+					</dict>
+					<key>name</key>
+					<string>nanopb.framework</string>
+					<key>team</key>
+					<dict>
+						<key>id</key>
+						<string>34MFMY4K35</string>
+						<key>name</key>
+						<string>TAIWAN SUGAR CORPORATION</string>
+					</dict>
+				</dict>
+			</array>
+			<key>entitlements</key>
+			<dict>
+				<key>application-identifier</key>
+				<string>34MFMY4K35.com.taiwansugar.taisugar</string>
+				<key>com.apple.developer.team-identifier</key>
+				<string>34MFMY4K35</string>
+				<key>get-task-allow</key>
+				<false/>
+				<key>keychain-access-groups</key>
+				<array>
+					<string>34MFMY4K35.com.taiwansugar.taisugar</string>
+				</array>
+			</dict>
+			<key>name</key>
+			<string>Taiwansugar.app</string>
+			<key>profile</key>
+			<dict>
+				<key>UUID</key>
+				<string>3a50046b-2309-42b5-963c-856c2a986bda</string>
+				<key>name</key>
+				<string>a03827_taisugar_app_distribution</string>
+			</dict>
+			<key>team</key>
+			<dict>
+				<key>id</key>
+				<string>34MFMY4K35</string>
+				<key>name</key>
+				<string>TAIWAN SUGAR CORPORATION</string>
+			</dict>
+		</dict>
+	</array>
+</dict>
+</plist>
