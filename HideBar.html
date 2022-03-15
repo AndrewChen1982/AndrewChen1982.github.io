@@ -1,0 +1,152 @@
+<!DOCTYPE html> 
+<html> 
+<!-- NOTES
+
+I've been looking for a simple way to persistently show a header and hide the url bar (beyond just position:fixed; top:0, which is only persistent until you scroll back home). I think this is it. Maybe there are better ways, but this sure is simple! One thing that's missing though is to have the URL bar disappear again once you scroll anywhere else on the page.
+
+It's based on the awesome work of mattsahr, bjrn, and bradbirdsall here: https://github.com/joelambert/ScrollFix/issues/2. It's not the problem they were trying to fix, but it's an awesome collateral benefit. To get what I was looking for, I tore a lot of their stuff out, and made the simplest starting file I could.
+
+I tested it on an iPhone running iOS 5.1 and it seems to do what I was looking for.
+
+
+-->
+<head> 
+  <meta charset="utf-8" /> 
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+  <meta name="apple-mobile-web-app-capable" content="yes"> 
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+  <title>ios webkit hide url + native scroll</title>
+  
+
+<!-- hides url bar on load, on orientation change, and at the start of a touch event -->  
+  <script>
+  if( !window.location.hash && window.addEventListener ){
+      window.addEventListener( "load",function() {
+          setTimeout(function(){
+              window.scrollTo(0, 0);
+          }, 0);
+      });
+      window.addEventListener( "orientationchange",function() {
+          setTimeout(function(){
+              window.scrollTo(0, 0);
+          }, 0);
+      });
+      window.addEventListener( "touchstart",function() {
+          setTimeout(function(){
+              window.scrollTo(0, 0);
+          }, 0);
+      });
+  }
+  </script>  
+
+<style>
+
+  body,ul,li {  padding:0;  margin:0;  border:0;}
+  body,button {   font-family: Helvetica, Arial, sans-serif; font-size:16px; }
+  
+  html,body {
+    height:100%;
+  }
+
+  ul {
+      list-style:none;
+      margin:0;
+      padding:0;
+  }
+  ul li {
+      padding:10px;
+      line-height:30px;
+      border-bottom:1px solid #999;
+      border-top:1px solid #fff;
+      font-size:26px;
+  }
+  header {
+    height:45px;
+    line-height:45px;
+    background:#444;
+    color:#ccc;
+    padding:0 10px;
+    z-index:1000;
+    box-shadow:0px 0px 4px #555;
+  }  
+  .vflex {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-box-align: stretch;
+    -webkit-box-flex:1;       
+  }
+  .scrolling {
+    -webkit-overflow-scrolling: touch;
+    overflow:auto;      
+  } 
+  .wrapper {
+    position:absolute;
+    top:45px;
+    bottom:-62px; /*this is weird - I have no idea why this does what it does...*/
+    left:0;
+    right:0;
+    background:#999;
+  }
+  .master {
+    background:#eee;
+    position:absolute;
+    top:0;
+    width:100%;
+    bottom:0;
+    left:0;      
+  }   
+  .bounce-fix{
+    margin-bottom:-1px; /* this adds an extra pixel that's needed to keep the browser from bouncing when the content is too short */
+  }
+
+/* =========================================================================================================================================== */
+/* = To get a persistent footer as well, comment this stuff back in. Watchout, it kills the persistent hide-url-bar, and I have no idea why. = */
+/* =========================================================================================================================================== */
+  
+/*  footer {
+    height:45px;
+    line-height:45px;
+    background:#444;
+    color:#ccc;
+    padding:0 10px;
+    position:absolute;
+    right:0;
+    bottom:0;
+    left:0;
+  }
+  
+  .wrapper {
+    bottom:45px;
+  }*/
+  
+</style>
+  
+	
+</head>
+<body>
+  <header>Header</header>
+  <div class="wrapper">
+    <div class="master vflex scrolling">
+      <div class="vflex scrolling"> <!-- this might seem redundant, but it avoids some pretty ugly behaviour -->
+          <div class="bounce-fix vflex">
+          <ul>
+                <li>Scrolling up/down on the header above will reveal the url bar and cause the rubber band effect to appear</li>
+                <li>Rotating horizontal and back to vertical will also make the url bar re-appear - yuck</li>
+                <li>-------</li>                
+                <li>Lorem ipsum dolor sit amet, consectetur adipisicing elit</li>
+                <li>sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. </li>
+                <li>Ut enim ad minim veniam, quis nostrud exercitation ullamco</li>
+                <li>laboris nisi ut aliquip ex ea commodo consequat.</li>
+                <li>Duis aute irure dolor in reprehenderit in voluptate velit esse</li>
+                <li>cillum dolore eu fugiat nulla pariatur.</li>          
+            </ul>
+        </div>
+      </div>
+    </div>  
+  </div>
+  
+  <!-- <footer id="footer">Footer</footer> -->
+  
+</body>
+</html>
