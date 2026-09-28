@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Don't Let the Pigeon Drive the Bus! 完整有聲書劇場</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Noto+Sans+TC:wght@400;600;800;900&display=swap');
+body {
+font-family: 'Noto Sans TC', sans-serif;
+background-color: #F7F4EE;
+}
+.font-cartoon {
+font-family: 'Fredoka One', cursive, 'Noto Sans TC', sans-serif;
+}
+.active-card {
+border: 3px solid #E11D48 !important;
+box-shadow: 0 0 25px rgba(225, 29, 72, 0.28) !important;
+transform: translateY(-2px);
+}
+.tantrum-pulse {
+animation: shake 0.6s infinite;
+}
+@keyframes shake {
+0% { transform: translate(1px, 1px) rotate(0deg); }
+20% { transform: translate(-2px, -1px) rotate(-1deg); }
+40% { transform: translate(2px, 1px) rotate(1deg); }
+60% { transform: translate(-1px, 2px) rotate(0deg); }
+80% { transform: translate(1px, -2px) rotate(1deg); }
+100% { transform: translate(1px, 1px) rotate(0deg); }
+}
+</style>
+</head>
+<body class="min-h-screen text-slate-800 pb-28">
+<!-- Header Banner -->
+<header class="bg-amber-100/90 border-b-4 border-amber-300 sticky top-0 z-50 shadow-sm backdrop-blur-md">
+<div class="max-w-4xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+<div>
+<div class="flex items-center gap-2">
+<span class="text-xs font-black uppercase tracking-wider text-amber-800 bg-amber-200 px-2.5 py-0.5 rounded-full">
+17 頁繪本全集完結篇
+</span>
+<span class="text-xs font-bold text-slate-500">莫·威廉斯 (Mo Willems) 名作</span>
+</div>
+<h1 class="text-xl md:text-2xl font-black text-slate-900 font-cartoon tracking-wide mt-0.5">
+🚌 別讓鴿子開公車！ <span class="text-sm font-normal text-slate-600 block sm:inline">生動有聲劇場</span>
+</h1>
+</div>
+<!-- Quick Mode Controls -->
+<div class="flex items-center gap-2">
+<select id="langSelect" class="bg-white border-2 border-slate-300 text-xs md:text-sm font-bold rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-400 shadow-sm cursor-pointer">
+<option value="bilingual">🎭 雙語說故事模式 (中文旁白 + 英文原聲)</option>
+<option value="zh">🇹🇼 純中文生動演繹 (情緒飽滿)</option>
+<option value="en">🇬🇧 英文角色原聲 (角色音調變換)</option>
+</select>
+<button id="masterPlayBtn" onclick="togglePlayAll()" class="bg-rose-600 hover:bg-rose-700 text-white font-bold px-4 py-2 rounded-xl shadow-md transition flex items-center gap-1.5 text-xs md:text-sm active:scale-95">
+<span id="playIcon">▶</span> <span id="playText">全書連續播放</span>
+</button>
+</div>
+</div>
+</header>
+<!-- Interactive Sound Effects Panel -->
+<section class="max-w-4xl mx-auto px-4 mt-5">
+<div class="bg-white rounded-2xl p-4 border-2 border-amber-200 shadow-sm">
+<div class="text-xs font-black text-slate-500 flex items-center gap-1.5 mb-2.5">
+<span class="text-base">🎬</span>
+<span>情境互動音效箱（點擊隨時為故事加戲）：</span>
+</div>
+<div class="flex flex-wrap gap-2">
+<button onclick="playSFX('horn')" class="bg-amber-100 hover:bg-amber-200 text-amber-900 text-xs font-bold px-3 py-1.5 rounded-full transition active:scale-95 flex items-center gap-1">
+📢 叭叭喇叭
+</button>
+<button onclick="playSFX('engine')" class="bg-emerald-100 hover:bg-emerald-200 text-emerald-900 text-xs font-bold px-3 py-1.5 rounded-full transition active:scale-95 flex items-center gap-1">
+🚌 引擎發動 (Vroom!)
+</button>
+<button onclick="playSFX('truck')" class="bg-red-100 hover:bg-red-200 text-red-900 text-xs font-bold px-3 py-1.5 rounded-full transition active:scale-95 flex items-center gap-1">
+🚚 巨型卡車低鳴 (HONK!)
+</button>
+<button onclick="playSFX('chirp')" class="bg-sky-100 hover:bg-sky-200 text-sky-900 text-xs font-bold px-3 py-1.5 rounded-full transition active:scale-95 flex items-center gap-1">
+🕊️ 鴿子拍翅碎碎念
+</button>
+<button onclick="playSFX('tantrum')" class="bg-rose-100 hover:bg-rose-200 text-rose-900 text-xs font-bold px-3 py-1.5 rounded-full transition active:scale-95 flex items-center gap-1">
+💥 暴走尖叫搖晃
+</button>
+<button onclick="playSFX('disappoint')" class="bg-purple-100 hover:bg-purple-200 text-purple-900 text-xs font-bold px-3 py-1.5 rounded-full transition active:scale-95 flex items-center gap-1">
+😞 沮喪滑音 (Oh no...)
+</button>
+</div>
+</div>
+</section>
+<!-- Storyboard List -->
+<main class="max-w-4xl mx-auto px-4 mt-6 space-y-6" id="storyList">
+<!-- Story Cards injected by JS -->
+</main>
+<script>
+// 完整 17 張照片的故事編排與情緒腳本
+const storyPages = [
+{
+id: 1,
+sourceImg: "image.png",
+pageTitle: "第 1 幕：司機的鄭重託付",
+character: "公車司機 (Bus Driver)",
+emotionBadge: "親切熱情、委以重任",
+badgeColor: "bg-emerald-100 text-emerald-800",
+pigeonStatus: "公車司機身穿整潔制服，笑瞇瞇地揮手向讀者打招呼，眼神滿是信賴。",
+enLines: "Hi! I'm the bus driver. Listen, I've got to leave for a little while, so can you watch things for me until I get back? Thanks. Oh, and remember:",
+zhStory: "嗨！各位小朋友好！我是公車司機。聽我說喔，我得先離開一下下，你們可以幫我看好這裡，直到我回來嗎？太感謝你們了！噢，對了，千萬要記住一件事喔：",
+actingGuide: "【司機配音】：成熟沉穩、親切又有元氣。最後一句「Oh, and remember:」要故意壓低嗓音、拉長懸念，吸引所有人的耳朵！",
+audioSettings: { enPitch: 0.9, enRate: 0.95, zhPitch: 1.0, zhRate: 1.0, sfx: "horn" }
+},
+{
+id: 2,
+sourceImg: "image_2.png & image_4.png",
+pageTitle: "第 2 幕：最重要的警告！",
+character: "旁白與警語 (The Warning)",
+emotionBadge: "嚴厲提醒、賊腦現形",
+badgeColor: "bg-red-100 text-red-800",
+pigeonStatus: "巨大如雷貫耳的對話框下，一隻淡藍色、圓滾滾大眼的鴿子，悄悄探出頭斜眼打量著大家！",
+enLines: "Don't Let the Pigeon Drive the Bus!",
+zhStory: "「絕對、絕對——千～萬～不能讓那隻鴿子去開公車！」（司機揮手離開了，一隻藍灰色的小鴿子悄悄溜進了視野……）",
+actingGuide: "【警告聲】：嚴格強調「Don't」和「Bus」。隨後旁白轉為神秘輕聲，引導大家看向那隻滿腦子壞點子的小鴿子。",
+audioSettings: { enPitch: 1.05, enRate: 0.9, zhPitch: 1.05, zhRate: 0.95, sfx: "chirp" }
+},
+{
+id: 3,
+sourceImg: "image_5.png",
+pageTitle: "第 3 幕：鬼鬼祟祟的暗自竊喜",
+character: "鴿子 (Pigeon)",
+emotionBadge: "得意偷笑、小聰明",
+badgeColor: "bg-indigo-100 text-indigo-800",
+pigeonStatus: "公車停在左上方，鴿子在右下角躡手躡腳、瞇著眼嘴角上揚地溜進來，背影充滿鬼點子。",
+enLines: "I thought he'd never leave.",
+zhStory: "「嘿嘿……我還以為那傢伙永遠都不會走咧！」",
+actingGuide: "【鴿子配音】：聲音尖細、帶著奸計得逞的偷笑，音量壓低如同自言自語。",
+audioSettings: { enPitch: 1.25, enRate: 0.95, zhPitch: 1.3, zhRate: 0.95, sfx: "chirp" }
+},
+{
+id: 4,
+sourceImg: "image_6.png",
+pageTitle: "第 4 幕：試探性的第一擊",
+character: "鴿子 (Pigeon)",
+emotionBadge: "假裝隨意、滿心期待",
+badgeColor: "bg-blue-100 text-blue-800",
+pigeonStatus: "鴿子先直挺挺立正站好，接著把頭轉向鏡頭，眨著無辜的大眼睛開口詢問。",
+enLines: "Hey, can I drive the bus?",
+zhStory: "「嘿，那個……我可以去開公車嗎？」",
+actingGuide: "【鴿子配音】：假裝輕鬆自然，像隨口向你借橡皮擦一樣。尾音「bus?」上揚，等待讀者大聲喊『NO！』。",
+audioSettings: { enPitch: 1.2, enRate: 1.0, zhPitch: 1.25, zhRate: 1.0, sfx: null }
+},
+{
+id: 5,
+sourceImg: "image_8.png",
+pageTitle: "第 5 幕：裝可憐與許下保證",
+character: "鴿子 (Pigeon)",
+emotionBadge: "撒嬌懇求、信誓旦旦",
+badgeColor: "bg-pink-100 text-pink-800",
+pigeonStatus: "脖子縮起、翅膀合十懇求；接著單手拍胸脯，一臉真誠拍胸保證。",
+enLines: "Please? I'll be careful.",
+zhStory: "「拜託啦？求求你嘛～我一定會很小心、很小心的啦！」",
+actingGuide: "【鴿子配音】：「Please?」拉長帶哭腔；「I'll be careful.」語速加快，努力表現出乖巧。",
+audioSettings: { enPitch: 1.35, enRate: 0.85, zhPitch: 1.4, zhRate: 0.85, sfx: null }
+},
+{
+id: 6,
+sourceImg: "image_3.png",
+pageTitle: "第 6 幕：討價還價與搬救兵吹牛",
+character: "鴿子 (Pigeon)",
+emotionBadge: "靈光一閃、吹牛炫耀",
+badgeColor: "bg-amber-100 text-amber-800",
+pigeonStatus: "翅膀像抓著方向盤比劃；接著張開大翅膀比手畫腳，搬出表哥哈利來背書。",
+enLines: "I know what, I'll just steer. My cousin Harry drives a bus almost every day!",
+zhStory: "「啊！我知道了！那我只負責轉方向盤就好，好不好？而且我跟你說喔，我的表哥哈利幾乎每天都在開公車耶！」",
+actingGuide: "【鴿子配音】：前半段興奮發現新捷徑，後半段提到 Harry 時昂首挺胸、極盡誇大之能事！",
+audioSettings: { enPitch: 1.3, enRate: 1.1, zhPitch: 1.3, zhRate: 1.05, sfx: null }
+},
+{
+id: 7,
+sourceImg: "image_7.png",
+pageTitle: "第 7 幕：死鴨子嘴硬與碰壁",
+character: "鴿子 (Pigeon)",
+emotionBadge: "心虛傲嬌、不耐煩",
+badgeColor: "bg-purple-100 text-purple-800",
+pigeonStatus: "左邊仰頭閉眼硬凹「真人真事」；右邊雙手叉腰、頭頂冒出煩躁亂線，半瞇著死魚眼瞪人。",
+enLines: "True story.",
+zhStory: "「……這可是真人真事喔。（看著大家依然堅決搖頭拒絕，鴿子叉著腰，頭上冒出三條不耐煩的亂線……）」",
+actingGuide: "【鴿子配音】：「True story.」語調快速而心虛；停頓後發出冷哼與挫敗的嘆氣。",
+audioSettings: { enPitch: 1.1, enRate: 0.9, zhPitch: 1.15, zhRate: 0.9, sfx: "disappoint" }
+},
+{
+id: 8,
+sourceImg: "image_9.png",
+pageTitle: "第 8 幕：狂熱幻想！鴿子飆車！",
+character: "鴿子 (Pigeon)",
+emotionBadge: "極度亢奮、手舞足蹈",
+badgeColor: "bg-orange-100 text-orange-800",
+pigeonStatus: "鴿子徹底放飛自我，翅膀急速拍打假裝握方向盤狂轉，單腳跳躍、雙翅狂揮，完全沉浸在飆車狂歡裡！",
+enLines: "VROOM-VROOM VROOMY VROOM-VROOM! PIGEON AT THE WHEEL!",
+zhStory: "「轟！轟！轟隆隆～狂飆碰碰！鴿子大車長握住方向盤啦！衝啊——！」",
+actingGuide: "【鴿子配音】：情緒高潮！嘴裡配出狂暴引擎聲，尖叫、歡呼、瘋狂！",
+audioSettings: { enPitch: 1.45, enRate: 1.25, zhPitch: 1.45, zhRate: 1.2, sfx: "engine" }
+},
+{
+id: 9,
+sourceImg: "image_10.png",
+pageTitle: "第 9 幕：希望幻滅與委屈大耍賴",
+character: "鴿子 (Pigeon)",
+emotionBadge: "晴天霹靂、垂頭喪氣",
+badgeColor: "bg-slate-100 text-slate-800",
+pigeonStatus: "左邊動作突然定格，難以置信地張大嘴；右邊脖子無力下垂、翅膀垂在地上，委屈到了極點。",
+enLines: "No? I never get to do anything!",
+zhStory: "「……不行？你們居然還是說不行？！我每次什麼事都不准做！吼——！」",
+actingGuide: "【鴿子配音】：「No?」驚愕抽氣；後半句「I never get to do anything!」立刻轉為又委屈又任性的拖長抱怨。",
+audioSettings: { enPitch: 0.85, enRate: 0.85, zhPitch: 0.9, zhRate: 0.85, sfx: "disappoint" }
+},
+{
+id: 10,
+sourceImg: "image_11.png",
+pageTitle: "第 10 幕：假裝玩遊戲的狡猾計謀",
+character: "鴿子 (Pigeon)",
+emotionBadge: "靈機一動、興奮開溜",
+badgeColor: "bg-teal-100 text-teal-800",
+pigeonStatus: "鴿子回頭眨眼，假裝正經地提議玩遊戲；接著拔腿就往公車衝去：『我先當司機！』",
+enLines: "Hey, I've got an idea. Let's play 'Drive the Bus'! I'll go first!",
+zhStory: "「嘿！我想到一個超棒的好點子！我們來玩『開公車』的家家酒遊戲吧！我先來當司機開第一棒喔！」",
+actingGuide: "【鴿子配音】：假裝天真無邪，最後「I'll go first!」語調急速飆高，拔腿開溜、偷溜上車的興奮感！",
+audioSettings: { enPitch: 1.35, enRate: 1.15, zhPitch: 1.3, zhRate: 1.1, sfx: "chirp" }
+},
+{
+id: 11,
+sourceImg: "image_12.png",
+pageTitle: "第 11 幕：軟磨硬泡！退一步的微小請求",
+character: "鴿子 (Pigeon)",
+emotionBadge: "賊溜溜探頭、苦苦哀求",
+badgeColor: "bg-cyan-100 text-cyan-800",
+pigeonStatus: "被抓回來後，從門縫後只露出一顆大頭探看，接著邁著小碎步向前懇求：就開到街角再回來嘛！",
+enLines: "C'mon! Just to the corner and back!",
+zhStory: "「來嘛～拜託一下啦！我就只開到街角轉個彎就馬上開回來，真的只有一下下啦！」",
+actingGuide: "【鴿子配音】：極盡能事的撒嬌與軟磨硬泡，「C'mon!」拉長尾音，表現出小朋友試探大人底線的小賴皮樣。",
+audioSettings: { enPitch: 1.3, enRate: 0.95, zhPitch: 1.35, zhRate: 0.95, sfx: null }
+},
+{
+id: 12,
+sourceImg: "image_13.png",
+pageTitle: "第 12 幕：情急智窮！連環 8 招大出擊！",
+character: "鴿子 (Pigeon 的 8 種情緒面具)",
+emotionBadge: "巴結行賄、氣急敗壞、冷酷翻臉",
+badgeColor: "bg-fuchsia-100 text-fuchsia-800",
+pigeonStatus: "經典 8 格漫畫：甜言蜜語巴結 → 掏錢行賄賄賂 → 雙翅一攤質問 → 拍翅抓狂抗議 → 抱胸氣餒盤坐 → 搬出對方媽媽挑撥 → 雙手撫胸談夢想 → 翻白眼冷酷說「隨便啦」！",
+enLines: "I'll be your best friend! How 'bout I give you a fiver? What's the problem!? It's just a bus!!! No fair! I bet your mum would let me. I have dreams, you know! Fine.",
+zhStory: "「我會當你一輩子最好的好朋友喔！那我給你五塊錢怎麼樣？到底是有什麼問題嘛！？不過就只是一台公車而已啊！！！太不公平了啦！我敢打賭你媽媽一定會答應我的！我也是有夢想的，好嗎？……好啦，隨便啦，哼。」",
+actingGuide: "【連續變臉配音】：從甜言蜜語的娃娃音、竊竊私語的行賄、暴躁跺腳的質問、委屈盤坐的抱怨，再到自作多情的文青嘆息，最後冷漠翻臉！節奏如機關槍般緊湊！",
+audioSettings: { enPitch: 1.25, enRate: 1.1, zhPitch: 1.25, zhRate: 1.05, sfx: "chirp" }
+},
+{
+id: 13,
+sourceImg: "image_14.png",
+pageTitle: "第 13 幕：全書最高潮！世紀大崩潰暴走！",
+character: "暴走鴿子 (Tantrum Meltdown)",
+emotionBadge: "全幅炸裂、滾地大哭大叫",
+badgeColor: "bg-rose-500 text-white animate-pulse",
+pigeonStatus: "字體如巨型黑雷震動！鴿子雙目通紅旋轉，在地上打滾、踢腿、羽毛四處飛濺、四腳朝天慘烈狂號！",
+enLines: "LET ME DRIVE THE BUS!!!",
+zhStory: "「讓我開公車啦！！！啊啊啊——！讓我開！讓我開！現在就讓我去開公車——！！！」",
+actingGuide: "【極限暴走配音】：小朋友在百貨公司地板打滾的最高境界！聲音要扯破喉嚨般大喊，伴隨著跺腳與揮舞雙臂的歇斯底里！",
+audioSettings: { enPitch: 1.5, enRate: 1.3, zhPitch: 1.5, zhRate: 1.25, sfx: "tantrum" }
+},
+{
+id: 14,
+sourceImg: "image_15.png",
+pageTitle: "第 14 幕：救星司機回歸！鴿子挫敗被逮",
+character: "司機與心虛鴿子 (Bus Driver & Pigeon)",
+emotionBadge: "滿心讚賞 vs 冷汗直流",
+badgeColor: "bg-emerald-100 text-emerald-800",
+pigeonStatus: "司機步履輕快走回來，笑口常開地誇獎讀者；右下角的鴿子冒出冷汗、翅膀縮成一團，頭頂冒出小泡泡：『完蛋了……』",
+enLines: "I'm back! You didn't let the pigeon drive the bus, did you? Great! Thanks a lot. ... Uh-oh!",
+zhStory: "「我回來囉！各位小朋友，你們沒有讓那隻鴿子去開公車，對吧？太棒了！真的太謝謝大家了！（右下角縮成一團的小鴿子抖了一下，小小聲自言自語：慘了……完蛋啦！）」",
+actingGuide: "【雙角色切換】：司機聲音清朗溫暖、充滿肯定與謝意；最後鴿子的「Uh-oh!」要瞬間轉為蚊子般的弱小倒抽一口氣。",
+audioSettings: { enPitch: 0.95, enRate: 0.95, zhPitch: 1.0, zhRate: 0.95, sfx: "horn" }
+},
+{
+id: 15,
+sourceImg: "image_16.png",
+pageTitle: "第 15 幕：公車揚長而去，極致落寞",
+character: "公車司機與沮喪鴿子",
+emotionBadge: "道別揚塵、靈魂出竅",
+badgeColor: "bg-slate-200 text-slate-700",
+pigeonStatus: "公車噴著排氣白煙轟轟駛離，司機親切揮手說 Bye！右下角的鴿子脖子像麵條一樣癱軟垂在地上，雙眼無神盯著地板。",
+enLines: "Bye! ...",
+zhStory: "「拜拜囉大家！（公車噗噗噗地開走了，留下一陣煙霧。而我們的小鴿子……脖子像煮熟的麵條一樣垂到了地上，徹底心碎了……）」",
+actingGuide: "【落寞收尾】：司機歡快的道別與隨後長達兩秒的寂靜形成強烈喜劇反差，旁白語氣帶著憐憫又好笑的嘆息。",
+audioSettings: { enPitch: 0.9, enRate: 0.9, zhPitch: 0.95, zhRate: 0.9, sfx: "disappoint" }
+},
+{
+id: 16,
+sourceImg: "image_17.png",
+pageTitle: "第 16 幕：大反轉結局！嶄新的野心誕生！",
+character: "賊心不死的小鴿子 (Pigeon's New Dream)",
+emotionBadge: "眼睛發亮、重燃希望",
+badgeColor: "bg-amber-400 text-amber-950 font-black",
+pigeonStatus: "突然間，眼前停了一輛巨大無比、輪胎比整隻鴿子還要大上數倍的紅色巨型拖車卡車！鴿子愣愣抬頭，眼睛閃爍著狂熱光芒……",
+enLines: "Hey...",
+zhStory: "「嘿……（伴隨著一陣沉重的轟鳴，一輛比公車大十倍的紅色巨型大卡車停在眼前！鴿子慢慢抬起頭，眼睛突然閃閃發亮……嘿嘿嘿！）」",
+actingGuide: "【神祕反轉配音】：「Hey...」要從極其微弱、驚喜，再到充滿不懷好意的意味深長，拉出巨大戲劇性留白！",
+audioSettings: { enPitch: 1.3, enRate: 0.8, zhPitch: 1.25, zhRate: 0.8, sfx: "truck" }
+}
+];
+// Web Audio Synthesizer: 包含 6 款繪本專屬情境音效
+let audioCtx = null;
+function getAudioContext() {
+if (!audioCtx) {
+audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+}
+if (audioCtx.state === 'suspended') {
+audioCtx.resume();
+}
+return audioCtx;
+}
+function playSFX(type) {
+try {
+const ctx = getAudioContext();
+const now = ctx.currentTime;
+if (type === 'horn') {
+// Bus Horn (雙音頻 440Hz + 554Hz)
+[440, 554].forEach(freq => {
+const osc = ctx.createOscillator();
+const gain = ctx.createGain();
+osc.frequency.setValueAtTime(freq, now);
+osc.type = 'sawtooth';
+gain.gain.setValueAtTime(0.18, now);
+gain.gain.setValueAtTime(0, now + 0.18);
+gain.gain.setValueAtTime(0.18, now + 0.25);
+gain.gain.setValueAtTime(0, now + 0.5);
+osc.connect(gain);
+gain.connect(ctx.destination);
+osc.start(now);
+osc.stop(now + 0.55);
+});
+} else if (type === 'truck') {
+// 巨型聯結大卡車重低音鳴笛 (Heavy Airhorn 130Hz + 165Hz)
+[130, 165].forEach(freq => {
+const osc = ctx.createOscillator();
+const gain = ctx.createGain();
+osc.frequency.setValueAtTime(freq, now);
+osc.type = 'sawtooth';
+gain.gain.setValueAtTime(0.25, now);
+gain.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
+osc.connect(gain);
+gain.connect(ctx.destination);
+osc.start(now);
+osc.stop(now + 1.25);
+});
+} else if (type === 'engine') {
+// 公車引擎拉轉轟鳴 (Vroom!)
+const osc = ctx.createOscillator();
+const gain = ctx.createGain();
+osc.type = 'triangle';
+osc.frequency.setValueAtTime(90, now);
+osc.frequency.exponentialRampToValueAtTime(280, now + 0.55);
+osc.frequency.exponentialRampToValueAtTime(140, now + 1.1);
+gain.gain.setValueAtTime(0.25, now);
+gain.gain.linearRampToValueAtTime(0.35, now + 0.45);
+gain.gain.exponentialRampToValueAtTime(0.001, now + 1.1);
+osc.connect(gain);
+gain.connect(ctx.destination);
+osc.start(now);
+osc.stop(now + 1.15);
+} else if (type === 'chirp') {
+// 鴿子碎碎念拍翅 (Chirp)
+const osc = ctx.createOscillator();
+const gain = ctx.createGain();
+osc.type = 'sine';
+osc.frequency.setValueAtTime(700, now);
+osc.frequency.linearRampToValueAtTime(1050, now + 0.08);
+osc.frequency.linearRampToValueAtTime(650, now + 0.16);
+gain.gain.setValueAtTime(0.2, now);
+gain.gain.exponentialRampToValueAtTime(0.01, now + 0.22);
+osc.connect(gain);
+gain.connect(ctx.destination);
+osc.start(now);
+osc.stop(now + 0.24);
+} else if (type === 'tantrum') {
+// 世紀大暴走噪音效果（顫動鋸齒波）
+const osc = ctx.createOscillator();
+const gain = ctx.createGain();
+osc.type = 'sawtooth';
+osc.frequency.setValueAtTime(450, now);
+osc.frequency.linearRampToValueAtTime(900, now + 0.2);
+osc.frequency.linearRampToValueAtTime(300, now + 0.5);
+osc.frequency.linearRampToValueAtTime(800, now + 0.8);
+gain.gain.setValueAtTime(0.3, now);
+gain.gain.exponentialRampToValueAtTime(0.01, now + 0.9);
+osc.connect(gain);
+gain.connect(ctx.destination);
+osc.start(now);
+osc.stop(now + 0.95);
+} else if (type === 'disappoint') {
+// 悲劇落寞滑音 (Sad descending slide)
+const osc = ctx.createOscillator();
+const gain = ctx.createGain();
+osc.type = 'sawtooth';
+osc.frequency.setValueAtTime(340, now);
+osc.frequency.exponentialRampToValueAtTime(160, now + 0.8);
+gain.gain.setValueAtTime(0.2, now);
+gain.gain.exponentialRampToValueAtTime(0.001, now + 0.85);
+osc.connect(gain);
+gain.connect(ctx.destination);
+osc.start(now);
+osc.stop(now + 0.9);
+}
+} catch (e) {
+console.warn("AudioContext error:", e);
+}
+}
+// Web Speech Synthesis Engine
+let isPlayingAll = false;
+let currentIndex = 0;
+function speakText(text, lang, pitch = 1.0, rate = 1.0, onEndCallback = null) {
+if (!('speechSynthesis' in window)) {
+alert("您的瀏覽器暫不支援語音朗讀功能，推薦使用 Chrome / Edge / Safari！");
+return;
+}
+window.speechSynthesis.cancel();
+const utterance = new SpeechSynthesisUtterance(text);
+utterance.lang = lang;
+utterance.pitch = pitch;
+utterance.rate = rate;
+// 選擇自然人聲
+const voices = window.speechSynthesis.getVoices();
+if (lang.startsWith('en')) {
+const enVoice = voices.find(v => v.lang.startsWith('en') && (v.name.includes('Natural') || v.name.includes('Google') || v.name.includes('Samantha')));
+if (enVoice) utterance.voice = enVoice;
+} else {
+const zhVoice = voices.find(v => (v.lang === 'zh-TW' || v.lang === 'zh-HK' || v.lang.startsWith('zh')) && (v.name.includes('Natural') || v.name.includes('Google') || v.name.includes('Mei-Jia') || v.name.includes('Ting-Ting') || v.name.includes('Hsiao-Chen')));
+if (zhVoice) utterance.voice = zhVoice;
+}
+utterance.onend = () => {
+if (onEndCallback) onEndCallback();
+};
+utterance.onerror = (e) => {
+console.warn("Speech error:", e);
+if (onEndCallback) onEndCallback();
+};
+window.speechSynthesis.speak(utterance);
+}
+function playCardAudio(index, onFinish = null) {
+const mode = document.getElementById('langSelect').value;
+const data = storyPages[index];
+highlightCard(index);
+// 觸發該頁對應的音效
+if (data.audioSettings.sfx) {
+playSFX(data.audioSettings.sfx);
+}
+if (mode === 'en') {
+speakText(data.enLines, 'en-US', data.audioSettings.enPitch, data.audioSettings.enRate, onFinish);
+} else if (mode === 'zh') {
+speakText(data.zhStory, 'zh-TW', data.audioSettings.zhPitch, data.audioSettings.zhRate, onFinish);
+} else {
+// 雙語模式：先念生動中文故事帶氣氛，再播放英文角色原聲
+speakText(data.zhStory, 'zh-TW', data.audioSettings.zhPitch, data.audioSettings.zhRate, () => {
+setTimeout(() => {
+speakText(data.enLines, 'en-US', data.audioSettings.enPitch, data.audioSettings.enRate, onFinish);
+}, 350);
+});
+}
+}
+function highlightCard(index) {
+document.querySelectorAll('.story-card').forEach((card, idx) => {
+if (idx === index) {
+card.classList.add('active-card');
+card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+} else {
+card.classList.remove('active-card');
+}
+});
+}
+function togglePlayAll() {
+if (isPlayingAll) {
+stopAll();
+} else {
+startPlayAll();
+}
+}
+function startPlayAll() {
+isPlayingAll = true;
+document.getElementById('playIcon').innerText = "⏸";
+document.getElementById('playText').innerText = "暫停播放";
+currentIndex = 0;
+playStep();
+}
+function playStep() {
+if (!isPlayingAll || currentIndex >= storyPages.length) {
+stopAll();
+return;
+}
+playCardAudio(currentIndex, () => {
+currentIndex++;
+if (currentIndex < storyPages.length && isPlayingAll) {
+setTimeout(playStep, 1000);
+} else {
+stopAll();
+}
+});
+}
+function stopAll() {
+isPlayingAll = false;
+window.speechSynthesis.cancel();
+document.getElementById('playIcon').innerText = "▶";
+document.getElementById('playText').innerText = "全書連續播放";
+document.querySelectorAll('.story-card').forEach(c => c.classList.remove('active-card'));
+}
+// 渲染所有 16 個故事卡片
+function renderStoryCards() {
+const container = document.getElementById('storyList');
+container.innerHTML = storyPages.map((page, idx) => `
+<article id="card-${idx}" class="story-card bg-white rounded-3xl p-5 md:p-6 border-2 border-slate-200 shadow-sm transition duration-300 ${page.id === 13 ? 'border-rose-400 bg-rose-50/20' : ''}">
+<!-- Top Row: Page Info, Emotion, Source -->
+<div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-100">
+<div class="flex items-center gap-2">
+<span class="font-cartoon text-lg text-slate-800 font-bold">${page.pageTitle}</span>
+<span class="text-xs font-bold px-2.5 py-1 rounded-full ${page.badgeColor}">
+￼
+￼
+￼
+￼
+📷 照片來源：{page.sourceImg}
+</div>
+</div>
+<!-- Illustration & Emotion Stage Direction -->
+<div class="mt-3.5 bg-amber-50/70 rounded-2xl p-3.5 border border-amber-100 flex items-start gap-3">
+<span class="text-xl">🎨</span>
+<div class="text-xs md:text-sm text-slate-700 leading-relaxed">
+<strong class="text-amber-900 font-bold">插畫姿態與情感情境：</strong>
+${page.pigeonStatus}
+</div>
+</div>
+<!-- Dialogues Section -->
+<div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+<!-- English Dialogue -->
+<div class="bg-sky-50/80 rounded-2xl p-4 border border-sky-100 relative flex flex-col justify-between">
+<div>
+<span class="text-xs font-black text-sky-600 uppercase tracking-wider block mb-1">英文繪本原文</span>
+<p class="text-base md:text-lg font-bold text-slate-900 tracking-wide font-mono leading-relaxed ${page.id === 13 ? 'text-rose-600 text-xl font-black' : ''}">
+"${page.enLines}"
+</p>
+</div>
+<div class="mt-2 text-[11px] font-mono text-sky-500">
+🎛️ 音調 Pitch: ${page.audioSettings.enPitch} | 語速 Rate: ${page.audioSettings.enRate}
+</div>
+</div>
+<!-- Chinese Lively Storytelling -->
+<div class="bg-orange-50/80 rounded-2xl p-4 border border-orange-100 flex flex-col justify-between">
+<div>
+<span class="text-xs font-black text-orange-600 uppercase tracking-wider block mb-1">中文有聲劇場台詞（含情境提示）</span>
+<p class="text-sm md:text-base font-medium text-slate-800 leading-relaxed ${page.id === 13 ? 'font-black text-rose-700' : ''}">
+￼
+￼
+￼
+￼
+🎭 演繹重點：{page.character}
+</div>
+</div>
+</div>
+<!-- Voice Acting Direction & Single Play Trigger -->
+<div class="mt-4 pt-3 border-t border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+<div class="text-xs text-slate-600 flex items-center gap-1.5 flex-1">
+<span class="text-base">🎙️</span>
+<span><strong>配音指導：</strong>${page.actingGuide}</span>
+</div>
+<button onclick="playCardAudio(${idx})" class="self-end sm:self-center bg-slate-900 hover:bg-slate-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition flex items-center gap-1.5 shadow-sm active:scale-95 whitespace-nowrap">
+<span>🔊</span> 試聽本頁情緒演繹
+</button>
+</div>
+</article>
+`).join('');
+}
+// 初始化與語音庫載入
+window.addEventListener('DOMContentLoaded', () => {
+renderStoryCards();
+if ('speechSynthesis' in window) {
+window.speechSynthesis.onvoiceschanged = () => {
+// Voices ready
+};
+}
+});
+</script>
+</body>
+</html>
