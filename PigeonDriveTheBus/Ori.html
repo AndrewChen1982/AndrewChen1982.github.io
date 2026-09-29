@@ -1,0 +1,1222 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>別讓鴿子開公車！- Gemini 3.8 Flash TTS 旗艦有聲劇場</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Noto+Sans+TC:wght@400;600;800;900&display=swap" rel="stylesheet">
+  <!-- JSZip CDN for one-click static audio package export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  
+  <style>
+    body {
+      font-family: 'Noto Sans TC', sans-serif;
+      background-color: #fbf7ee;
+    }
+    .font-cartoon {
+      font-family: 'Fredoka One', 'Noto Sans TC', cursive, sans-serif;
+    }
+    @keyframes wavePulse {
+      0%, 100% { height: 6px; }
+      50% { height: 28px; }
+    }
+    .wave-bar {
+      animation: wavePulse 0.8s ease-in-out infinite;
+    }
+    .wave-bar:nth-child(2) { animation-delay: 0.15s; }
+    .wave-bar:nth-child(3) { animation-delay: 0.3s; }
+    .wave-bar:nth-child(4) { animation-delay: 0.45s; }
+    .wave-bar:nth-child(5) { animation-delay: 0.6s; }
+
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1ebd8;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #e09f3e;
+      border-radius: 999px;
+    }
+  </style>
+</head>
+<body class="text-slate-800 antialiased min-h-screen flex flex-col selection:bg-amber-300 selection:text-amber-950">
+
+  <!-- Top Sticky Navigation -->
+  <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b-4 border-amber-400 shadow-md">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <span class="text-3xl filter drop-shadow hover:rotate-12 transition transform cursor-pointer" onclick="playSfx('horn')">🕊️🚌</span>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[11px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
+              Gemini 3.8 Flash TTS 旗艦驅動
+            </span>
+            <span id="cacheBadge" class="bg-emerald-100 text-emerald-800 border border-emerald-300 text-[11px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+              ⚡ 載入中...
+            </span>
+          </div>
+          <h1 class="text-lg md:text-2xl font-black text-slate-900 font-cartoon tracking-wide">
+            別讓鴿子開公車！ <span class="text-xs md:text-sm font-bold text-slate-500 font-sans">擬真角色雙語有聲劇</span>
+          </h1>
+        </div>
+      </div>
+
+      <!-- Controls: Playback Mode & Gemini Studio -->
+      <div class="flex items-center gap-2 flex-wrap">
+        <!-- Performance Mode Selector -->
+        <div class="flex items-center bg-slate-100 rounded-2xl p-1 border-2 border-slate-200 shadow-inner">
+          <button id="mode-zh" onclick="setPlayMode('zh')" class="px-2.5 py-1 text-xs md:text-sm font-black rounded-xl transition-all bg-white text-amber-900 shadow">
+            🇹🇼 中文劇場
+          </button>
+          <button id="mode-en" onclick="setPlayMode('en')" class="px-2.5 py-1 text-xs md:text-sm font-bold rounded-xl transition-all text-slate-600 hover:text-slate-900">
+            🇺🇸 英文原著
+          </button>
+          <button id="mode-both" onclick="setPlayMode('both')" class="px-2.5 py-1 text-xs md:text-sm font-bold rounded-xl transition-all text-slate-600 hover:text-slate-900 flex items-center gap-1">
+            🎭 雙語雙重奏
+          </button>
+        </div>
+
+        <!-- Offline Audio Batch Studio -->
+        <button onclick="openStudioModal()" class="bg-amber-100 hover:bg-amber-200 text-amber-950 font-black text-xs md:text-sm px-3.5 py-2 rounded-xl border border-amber-300 transition-all flex items-center gap-1.5 shadow-sm active:scale-95">
+          <span>📦</span> 部署打包與音檔匯出
+        </button>
+
+        <!-- Continuous Play Button -->
+        <button id="globalPlayBtn" onclick="togglePlayAll()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs md:text-sm px-4 py-2 rounded-xl shadow-md transition-all flex items-center gap-1.5 active:scale-95">
+          <span id="globalPlayIcon">▶️</span> <span id="globalPlayText">連續播放全劇</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Status & Dynamic Audio Visualizer Bar -->
+  <div id="statusBar" class="bg-amber-50 border-b border-amber-200 px-4 py-2 text-xs md:text-sm text-amber-950 flex items-center justify-between shadow-inner">
+    <div class="max-w-6xl mx-auto w-full flex items-center justify-between">
+      <div class="flex items-center gap-2 overflow-hidden">
+        <span id="statusIndicator" class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping flex-shrink-0"></span>
+        <span id="statusMessage" class="font-bold truncate">準備就緒：點選任一幕的「▶️ 播放演出」，體驗 Gemini 3.8 Flash TTS 生動神經音質！</span>
+      </div>
+      <div id="playingWave" class="hidden flex items-end gap-1 h-5 flex-shrink-0 ml-3">
+        <div class="w-1 bg-amber-600 rounded-full wave-bar"></div>
+        <div class="w-1 bg-orange-600 rounded-full wave-bar"></div>
+        <div class="w-1 bg-amber-500 rounded-full wave-bar"></div>
+        <div class="w-1 bg-orange-500 rounded-full wave-bar"></div>
+        <div class="w-1 bg-amber-700 rounded-full wave-bar"></div>
+      </div>
+    </div>
+  </div>
+
+  <main class="max-w-6xl mx-auto px-4 py-8 flex-1 w-full">
+    <!-- Story Introduction & Character Profile Card -->
+    <div class="bg-white rounded-3xl p-6 border-4 border-amber-300 shadow-xl mb-8 flex flex-col md:flex-row items-center gap-6 relative overflow-hidden">
+      <div class="absolute -right-8 -top-8 w-36 h-36 bg-amber-100 rounded-full opacity-40 pointer-events-none"></div>
+
+      <div class="w-24 h-24 md:w-28 md:h-28 rounded-2xl bg-amber-100 border-2 border-amber-300 flex items-center justify-center text-5xl shadow-inner flex-shrink-0">
+        🚌
+      </div>
+      <div class="flex-1 text-center md:text-left">
+        <div class="flex items-center justify-center md:justify-start gap-2 mb-1.5 flex-wrap">
+          <span class="text-xs font-black text-amber-900 bg-amber-100 border border-amber-300 px-2.5 py-0.5 rounded-md">
+            全 16 幕完結・17 張照片完全對應
+          </span>
+          <span class="text-xs font-bold text-slate-500">作者：莫·威廉斯 (Mo Willems)</span>
+        </div>
+        <h2 class="text-xl md:text-3xl font-black text-slate-900 font-cartoon">
+          《別讓鴿子開公車！》全角色神經雙語有聲劇
+        </h2>
+        
+        <!-- Standardized Character Voice Personas -->
+        <div class="mt-3 flex flex-wrap gap-2.5 justify-center md:justify-start">
+          <div class="bg-sky-50 border border-sky-200 rounded-2xl px-3 py-1.5 text-xs text-sky-950 flex items-center gap-2 font-bold shadow-sm">
+            <span class="text-base">👨‍✈️</span>
+            <div>
+              <span class="text-sky-900 font-black">公車司機：</span>
+              <span class="text-sky-700 font-medium">30歲隨和男性・穩重親切・值得信賴 (Voice: Charon)</span>
+            </div>
+          </div>
+          <div class="bg-amber-50 border border-amber-200 rounded-2xl px-3 py-1.5 text-xs text-amber-950 flex items-center gap-2 font-bold shadow-sm">
+            <span class="text-base">🕊️</span>
+            <div>
+              <span class="text-amber-900 font-black">小鴿子：</span>
+              <span class="text-amber-800 font-medium">12歲男孩人格・愛鑽漏洞・死纏爛打・打滾大暴走 (Voice: Puck / Fenrir)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick bus soundboard -->
+      <div class="flex md:flex-col gap-2 flex-shrink-0 w-full md:w-auto justify-center">
+        <button onclick="playSfx('horn')" class="px-3.5 py-2 bg-amber-100 hover:bg-amber-200 text-amber-950 rounded-xl text-xs font-black border border-amber-300 transition flex items-center justify-center gap-1 shadow-sm active:scale-95">
+          📢 叭叭公車喇叭
+        </button>
+        <button onclick="playSfx('screech')" class="px-3.5 py-2 bg-rose-100 hover:bg-rose-200 text-rose-950 rounded-xl text-xs font-black border border-rose-300 transition flex items-center justify-center gap-1 shadow-sm active:scale-95">
+          💥 輪胎急煞車
+        </button>
+        <button onclick="playSfx('engine')" class="px-3.5 py-2 bg-sky-100 hover:bg-sky-200 text-sky-950 rounded-xl text-xs font-black border border-sky-300 transition flex items-center justify-center gap-1 shadow-sm active:scale-95">
+          🚗 引擎拉轉聲
+        </button>
+      </div>
+    </div>
+
+    <!-- Scenes Grid Container -->
+    <div id="scenesContainer" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <!-- Injected by JavaScript -->
+    </div>
+  </main>
+
+  <div id="studioModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-xl w-full p-6 shadow-2xl border-4 border-amber-400 relative flex flex-col max-h-[90vh]">
+      <button onclick="closeStudioModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-800 text-2xl font-black w-8 h-8 rounded-full hover:bg-slate-100 flex items-center justify-center transition">
+        &times;
+      </button>
+
+      <div class="flex items-center gap-3 pb-3 border-b border-amber-100">
+        <span class="text-3xl">🎙️</span>
+        <div>
+          <h3 class="text-lg font-black text-slate-900 font-cartoon">個人空間靜態音檔打包部署中心</h3>
+          <p class="text-xs text-slate-500">將 Gemini 3.8 Flash TTS 生成的音檔打包下載，上傳主機後所有訪客均可直接秒播！</p>
+        </div>
+      </div>
+
+      <div class="my-4 flex-1 overflow-y-auto space-y-4 pr-1 text-xs md:text-sm">
+        <!-- Export & Package Box -->
+        <div class="p-4 bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl border-2 border-amber-300 space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="font-black text-amber-950 flex items-center gap-1.5 text-sm">
+              <span>🎁</span> 一鍵打包全書音檔 (ZIP 下載)
+            </span>
+            <span id="cacheStats" class="bg-amber-200 text-amber-950 px-2.5 py-0.5 rounded-full font-bold text-xs">
+              計算中...
+            </span>
+          </div>
+          <p class="text-xs text-amber-900 leading-relaxed font-medium">
+            點選下方按鈕，系統會使用 <strong>Gemini 3.8 Flash TTS</strong> 依序生成全劇 16 幕的【中文 + 英文】共 32 首高音質 WAV 檔案，並<strong>自動打包成 <code>pigeon_audio.zip</code> 下載到您的電腦</strong>！
+          </p>
+          
+          <!-- Progress bar -->
+          <div class="w-full bg-amber-200/60 rounded-full h-3 overflow-hidden">
+            <div id="batchProgressBar" class="bg-amber-600 h-3 rounded-full transition-all duration-300 w-0"></div>
+          </div>
+          <p id="batchStatusText" class="text-xs text-amber-900 font-bold">準備就緒，點選下方按鈕開始打包。</p>
+
+          <div class="flex flex-col sm:flex-row gap-2 pt-1">
+            <button id="batchZipBtn" onclick="startBatchAndExportZip()" class="flex-1 bg-amber-600 hover:bg-amber-700 text-white font-black py-2.5 rounded-xl text-xs md:text-sm shadow-md transition active:scale-95 flex items-center justify-center gap-1.5">
+              <span>🚀</span> 生成並打包下載 ZIP 音效包
+            </button>
+            <button onclick="clearAllCache()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold px-3 py-2 rounded-xl text-xs transition">
+              🗑️ 清空快取
+            </button>
+          </div>
+        </div>
+
+        <!-- Deployment Guide -->
+        <div class="p-4 bg-emerald-50 rounded-2xl border-2 border-emerald-300 space-y-2 text-xs text-emerald-950">
+          <h4 class="font-black flex items-center gap-1.5 text-sm text-emerald-900">
+            <span>🌐</span> 網站空間上傳步驟（所有訪客免 API 隨點秒播）
+          </h4>
+          <ol class="list-decimal list-inside space-y-1.5 text-emerald-800 leading-relaxed font-medium">
+            <li>在上方點選<strong>「生成並打包下載 ZIP 音效包」</strong>，取得 <code>pigeon_audio.zip</code>。</li>
+            <li>在電腦上解壓縮，會得到一個名為 <strong><code>audio</code></strong> 的資料夾（內含 32 個 <code>.wav</code> 音檔）。</li>
+            <li>將本 HTML 檔案（建議更名為 <code>index.html</code>）與 <strong><code>audio</code></strong> 資料夾放在<strong>同一層目錄</strong>上傳至您的個人空間：
+              <div class="mt-1.5 p-2 bg-emerald-900/10 rounded-lg font-mono text-[11px] text-emerald-950">
+                📁 您的網站空間目錄/<br>
+                ├── 📄 index.html<br>
+                └── 📁 audio/<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;├── scene_1_zh.wav<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;├── scene_1_en.wav<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;└── ... (全劇 32 首)
+              </div>
+            </li>
+            <li><strong>成果</strong>：日後任何不同訪客或親友透過手機、電腦打開網頁，瀏覽器會直接向您的網站抓取靜態音檔，<strong>完全不用再連接 Gemini，也不會消耗任何配額！</strong></li>
+          </ol>
+        </div>
+
+        <!-- Role Sound Profiles -->
+        <div class="p-3.5 bg-sky-50 rounded-2xl border border-sky-200 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="font-black text-sky-950 flex items-center gap-1.5">
+              <span>👨‍✈️</span> 角色一：公車司機 (Charon)
+            </span>
+            <span class="bg-sky-200 text-sky-900 px-2 py-0.5 rounded-md font-bold text-xs">30 歲男聲・隨和沉穩</span>
+          </div>
+          <p class="text-xs text-sky-800 leading-relaxed">
+            採用 Gemini 3.8 Flash TTS 的 <code>Charon</code> 男中音音色，語速與音調沉穩自然，營造出成熟、隨和、值得將公車託付給他的大哥哥形象。
+          </p>
+          <div class="flex gap-2 pt-1">
+            <button onclick="testRoleVoice('driver', 'zh')" class="px-2.5 py-1 bg-white hover:bg-sky-100 border border-sky-300 text-sky-900 rounded-lg font-bold text-xs">
+              🔊 司機中文試聽
+            </button>
+            <button onclick="testRoleVoice('driver', 'en')" class="px-2.5 py-1 bg-white hover:bg-sky-100 border border-sky-300 text-sky-900 rounded-lg font-bold text-xs">
+              🔊 司機英文試聽
+            </button>
+          </div>
+        </div>
+
+        <div class="p-3.5 bg-orange-50 rounded-2xl border border-orange-200 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="font-black text-orange-950 flex items-center gap-1.5">
+              <span>🕊️</span> 角色二：小鴿子 (Puck / Fenrir)
+            </span>
+            <span class="bg-orange-200 text-orange-950 px-2 py-0.5 rounded-md font-bold text-xs">12 歲男孩・頑皮鑽漏洞・暴走崩潰</span>
+          </div>
+          <p class="text-xs text-orange-900 leading-relaxed">
+            常規場景採用 <code>Puck</code>（活潑高亢、愛耍小聰明），第 13 幕大崩潰尖叫採用 <code>Fenrir</code>（極具撕心裂肺暴走張力），精準詮釋地上打滾的兒童級反差。
+          </p>
+          <div class="flex gap-2 pt-1">
+            <button onclick="testRoleVoice('pigeon', 'zh')" class="px-2.5 py-1 bg-white hover:bg-orange-100 border border-orange-300 text-orange-950 rounded-lg font-bold text-xs">
+              🔊 鴿子中文試聽
+            </button>
+            <button onclick="testRoleVoice('pigeon', 'en')" class="px-2.5 py-1 bg-white hover:bg-orange-100 border border-orange-300 text-orange-950 rounded-lg font-bold text-xs">
+              🔊 鴿子英文試聽
+            </button>
+          </div>
+        </div>
+
+        <!-- Deployment Guide -->
+        <div class="p-3.5 bg-emerald-50 rounded-2xl border border-emerald-200 space-y-1.5 text-xs text-emerald-950">
+          <h4 class="font-black flex items-center gap-1 text-emerald-900">
+            <span>🌐</span> 如何放上個人網路空間？
+          </h4>
+          <ol class="list-decimal list-inside space-y-1 text-emerald-800 leading-relaxed">
+            <li>在電腦上先點選上方<strong>「開始批次生成全劇音訊」</strong>，系統會自動將全書 16 幕的擬真音訊快取到本機。</li>
+            <li>將此 HTML 檔案上傳至 GitHub Pages、Netlify、Cloudflare Pages 或個人的 Apache / Nginx 空間。</li>
+            <li>在有網路時它會即時透過 Gemini 3.8 Flash TTS 高音質發聲；快取過的音訊更能在任何無網路環境下直接秒播！</li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="pt-3 border-t border-slate-100 flex justify-end">
+        <button onclick="closeStudioModal()" class="bg-slate-900 hover:bg-slate-800 text-white font-bold px-5 py-2 rounded-xl text-xs md:text-sm">
+          確定完成
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification element -->
+  <div id="toast" class="fixed bottom-16 left-1/2 -translate-x-1/2 bg-slate-900/90 text-white text-xs md:text-sm px-5 py-3 rounded-2xl shadow-2xl z-50 hidden transition-all duration-300 max-w-md w-11/12 text-center whitespace-pre-line border border-slate-700"></div>
+
+  <script>
+    // Full 16-scene data mapped to the 17 uploaded book photos
+    const storyScenes = [
+      {
+        id: 1,
+        title: "第 1 幕：司機的託付",
+        role: "driver",
+        voice: "Charon",
+        character: "公車司機",
+        charIcon: "👨‍✈️",
+        enText: "Hi! I'm the bus driver. Listen, I've got to leave for a little while, so can you watch things for me until I get back? Thanks. Oh, and remember:",
+        zhText: "嗨！我是公車司機。聽好囉，我得離開一下下，所以在我回來之前，你可以幫我照看一下現場嗎？謝謝你啦。喔，對了，記住：",
+        directorPrompt: "Speak in a warm, relaxed, reliable 30-year-old male bus driver tone, kindly speaking to children in the audience. Friendly, approachable, moderate pacing.",
+        badgeColor: "bg-sky-100 text-sky-800 border-sky-300"
+      },
+      {
+        id: 2,
+        title: "第 2 幕：鄭重警告！",
+        role: "driver",
+        voice: "Charon",
+        character: "司機嚴肅警告",
+        charIcon: "🛑",
+        enText: "Don't Let the Pigeon Drive the Bus!",
+        zhText: "千萬別讓鴿子開公車！",
+        directorPrompt: "Speak with serious, firm, dramatic storytelling emphasis. Very important warning, solemn yet humorous.",
+        badgeColor: "bg-rose-100 text-rose-800 border-rose-300"
+      },
+      {
+        id: 3,
+        title: "第 3 幕：小鴿子鬼祟登場",
+        role: "pigeon",
+        voice: "Puck",
+        character: "小鴿子",
+        charIcon: "🕊️",
+        enText: "I thought he'd never leave.",
+        zhText: "哼，我還以為他永遠都不會走咧！",
+        directorPrompt: "Speak like a sneaky, mischievous 12-year-old cartoon boy whispering slyly to himself with a cheeky grin.",
+        badgeColor: "bg-amber-100 text-amber-800 border-amber-300"
+      },
+      {
+        id: 4,
+        title: "第 4 幕：若無其事的試探",
+        role: "pigeon",
+        voice: "Puck",
+        character: "小鴿子",
+        charIcon: "🕊️",
+        enText: "Hey, can I drive the bus?",
+        zhText: "嘿！那我來開公車好不好啊？",
+        directorPrompt: "Speak with innocent, wide-eyed sweetness, trying to act casual and harmless while sneaking a huge request.",
+        badgeColor: "bg-amber-100 text-amber-800 border-amber-300"
+      },
+      {
+        id: 5,
+        title: "第 5 幕：裝可憐軟磨硬泡",
+        role: "pigeon",
+        voice: "Puck",
+        character: "小鴿子",
+        charIcon: "🥺",
+        enText: "Please? I'll be careful.",
+        zhText: "拜託啦？求求你嘛！我一定會非常非常小心的！",
+        directorPrompt: "Speak with dramatic whiny begging, puppy-dog eyes, sweet pleading boy tone, dragging the vowels.",
+        badgeColor: "bg-purple-100 text-purple-800 border-purple-300"
+      },
+      {
+        id: 6,
+        title: "第 6 幕：討價還價吹大牛",
+        role: "pigeon",
+        voice: "Puck",
+        character: "小鴿子",
+        charIcon: "😏",
+        enText: "I know what, I'll just steer. My cousin Harry drives a bus almost every day!",
+        zhText: "我想到了！我只握方向盤就好！我表哥哈利幾乎每天都在開公車耶！",
+        directorPrompt: "Speak boastfully, finding technical loopholes, acting proud and bluffing shamelessly like a fast-talking 12yo kid.",
+        badgeColor: "bg-amber-100 text-amber-800 border-amber-300"
+      },
+      {
+        id: 7,
+        title: "第 7 幕：傲嬌與冷眼相對",
+        role: "pigeon",
+        voice: "Puck",
+        character: "小鴿子",
+        charIcon: "😒",
+        enText: "True story.",
+        zhText: "這可是真人真事喔，沒騙你吧！",
+        directorPrompt: "Speak with a deadpan, sassy, dismissive tone, wings on hips, refusing to admit he was bluffing.",
+        badgeColor: "bg-slate-100 text-slate-800 border-slate-300"
+      },
+      {
+        id: 8,
+        title: "第 8 幕：狂暴幻想！公車狂飆",
+        role: "pigeon",
+        voice: "Fenrir",
+        character: "小鴿子",
+        charIcon: "🏎️",
+        enText: "VROOM-VROOM VROOMY VROOM-VROOM! PIGEON AT THE WHEEL!",
+        zhText: "轟隆隆隆！叭叭！飆速轟隆隆！鴿子老司機掌控方向盤啦！",
+        directorPrompt: "Excited, wild, hyperactive kid yelling imitating engine sounds and speeding bus! High energy, fast, roaring!",
+        badgeColor: "bg-orange-100 text-orange-800 border-orange-300"
+      },
+      {
+        id: 9,
+        title: "第 9 幕：被拒絕後的沮喪抱怨",
+        role: "pigeon",
+        voice: "Puck",
+        character: "小鴿子",
+        charIcon: "😞",
+        enText: "No? I never get to do anything!",
+        zhText: "還是不行？嗚……我永遠都沒有機會做任何好玩的事啦！",
+        directorPrompt: "Deeply sulky, pouting, dramatic teenage sigh, feeling completely misunderstood and mistreated.",
+        badgeColor: "bg-indigo-100 text-indigo-800 border-indigo-300"
+      },
+      {
+        id: 10,
+        title: "第 10 幕：假裝玩遊戲討便宜",
+        role: "pigeon",
+        voice: "Puck",
+        character: "小鴿子",
+        charIcon: "🏃",
+        enText: "Hey, I've got an idea. Let's play 'Drive the Bus'! I'll go first!",
+        zhText: "嘿！我又想到一個好點子了！我們來玩『開公車』的家家酒遊戲！我先開！",
+        directorPrompt: "Sneaky, pretending it's an innocent game, speeding up on 'I'll go first' as he dashes to the driver seat!",
+        badgeColor: "bg-amber-100 text-amber-800 border-amber-300"
+      },
+      {
+        id: 11,
+        title: "第 11 幕：退而求其次的試探",
+        role: "pigeon",
+        voice: "Puck",
+        character: "小鴿子",
+        charIcon: "👀",
+        enText: "C'mon! Just to the corner and back!",
+        zhText: "來嘛！拜託啦！就開到街角轉個彎就開回來好不好！",
+        directorPrompt: "Peeking around the corner, pleading, wheedling, sweet persistent kid negotiating.",
+        badgeColor: "bg-amber-100 text-amber-800 border-amber-300"
+      },
+      {
+        id: 12,
+        title: "第 12 幕：連環八招！情緒大變臉",
+        role: "pigeon",
+        voice: "Puck",
+        character: "小鴿子",
+        charIcon: "🎭",
+        enText: "I'll be your best friend! How 'bout I give you a fiver? What's the problem!? It's just a bus!!! No fair! I bet your mum would let me. I have dreams, you know! Fine.",
+        zhText: "我會當你最好的朋友！那我給你五塊錢怎麼樣？到底是有什麼問題啦！？這只不過是一台公車而已啊！太不公平了！我敢說你媽媽一定會答應我的！我也是有夢想的，你懂不懂啊！好啦……隨便啦。",
+        directorPrompt: "Rapid emotional rollercoaster: flattering, bribery, agitation, loud flapping wings, petulant pout, guilt tripping, faux dramatic poet, ending with a cold flat 'Fine.'",
+        badgeColor: "bg-rose-100 text-rose-800 border-rose-300"
+      },
+      {
+        id: 13,
+        title: "第 13 幕：世紀大崩潰暴走！",
+        role: "pigeon",
+        voice: "Fenrir",
+        character: "小鴿子",
+        charIcon: "💥",
+        enText: "LET ME DRIVE THE BUS!!!",
+        zhText: "讓我開公車啦啊啊啊啊啊啊！！！",
+        directorPrompt: "SCREAM AT THE TOP OF YOUR LUNGS! Absolute full-blown chaotic hilarious cartoon toddler meltdown screaming! Rolling on the floor screaming with tears!",
+        badgeColor: "bg-red-200 text-red-950 border-red-400"
+      },
+      {
+        id: 14,
+        title: "第 14 幕：司機驚喜回歸",
+        role: "driver",
+        voice: "Charon",
+        character: "公車司機",
+        charIcon: "👮",
+        enText: "I'm back! You didn't let the pigeon drive the bus, did you? Great! Thanks a lot. (Uh-oh!)",
+        zhText: "我回來啦！你們剛才沒有讓那隻鴿子開公車吧？太棒了！真是太感謝你們了。（呃喔，被抓包了！）",
+        directorPrompt: "Driver returns cheerful, sunny, responsible 30yo man praising the kids. End with small guilty pigeon whisper.",
+        badgeColor: "bg-emerald-100 text-emerald-800 border-emerald-300"
+      },
+      {
+        id: 15,
+        title: "第 15 幕：公車駛離，落寞無語",
+        role: "driver",
+        voice: "Charon",
+        character: "公車駛離",
+        charIcon: "💨",
+        enText: "Bye!",
+        zhText: "再見啦大家！下次見！",
+        directorPrompt: "Cheerful loud farewell wave from driver as the bus zooms off into the distance.",
+        badgeColor: "bg-slate-100 text-slate-800 border-slate-300"
+      },
+      {
+        id: 16,
+        title: "第 16 幕：終極大反轉！大卡車登場",
+        role: "pigeon",
+        voice: "Puck",
+        character: "小鴿子",
+        charIcon: "🚛",
+        enText: "Hey...",
+        zhText: "嘿……（賊心不死、眼睛再度發亮……）",
+        directorPrompt: "Low, stunned, breathy whisper, suddenly inspired with mischievous ambition upon seeing the giant truck.",
+        badgeColor: "bg-red-100 text-red-900 border-red-300"
+      }
+    ];
+
+    let currentPlayMode = 'zh'; // 'zh', 'en', 'both'
+    let currentPlayingIdx = -1;
+    let isAutoPlayingAll = false;
+    let currentAudioElement = null;
+    let audioContext = null;
+
+    // IndexedDB for offline audio storage
+    const DB_NAME = 'PigeonAudiobookDB_v38';
+    const STORE_NAME = 'gemini_audio_cache';
+    let dbInstance = null;
+
+    // Track if static audio directory is available on server
+    let staticAudioAvailable = null;
+
+    function initDB() {
+      return new Promise((resolve) => {
+        const req = indexedDB.open(DB_NAME, 1);
+        req.onupgradeneeded = (e) => {
+          const db = e.target.result;
+          if (!db.objectStoreNames.contains(STORE_NAME)) {
+            db.createObjectStore(STORE_NAME);
+          }
+        };
+        req.onsuccess = (e) => {
+          dbInstance = e.target.result;
+          updateCacheStats();
+          resolve(dbInstance);
+        };
+        req.onerror = () => {
+          console.warn("IndexedDB unavailable, falling back to memory cache.");
+          resolve(null);
+        };
+      });
+    }
+
+    const memoryCache = new Map();
+
+    async function getCachedAudio(key) {
+      if (memoryCache.has(key)) return memoryCache.get(key);
+      if (!dbInstance) return null;
+      return new Promise((resolve) => {
+        try {
+          const tx = dbInstance.transaction(STORE_NAME, 'readonly');
+          const store = tx.objectStore(STORE_NAME);
+          const req = store.get(key);
+          req.onsuccess = () => {
+            if (req.result) {
+              const url = URL.createObjectURL(req.result);
+              memoryCache.set(key, url);
+              resolve(url);
+            } else {
+              resolve(null);
+            }
+          };
+          req.onerror = () => resolve(null);
+        } catch (e) {
+          resolve(null);
+        }
+      });
+    }
+
+    async function setCachedAudio(key, blob) {
+      const url = URL.createObjectURL(blob);
+      memoryCache.set(key, url);
+      if (dbInstance) {
+        try {
+          const tx = dbInstance.transaction(STORE_NAME, 'readwrite');
+          const store = tx.objectStore(STORE_NAME);
+          store.put(blob, key);
+        } catch (e) {
+          console.warn("Error saving to IndexedDB:", e);
+        }
+      }
+      updateCacheStats();
+      return url;
+    }
+
+    async function updateCacheStats() {
+      if (!dbInstance) return;
+      try {
+        const tx = dbInstance.transaction(STORE_NAME, 'readonly');
+        const store = tx.objectStore(STORE_NAME);
+        const countReq = store.count();
+        countReq.onsuccess = () => {
+          const count = countReq.result;
+          const badge = document.getElementById('cacheBadge');
+          const stats = document.getElementById('cacheStats');
+          const totalNeeds = storyScenes.length * 2; // zh & en
+          if (badge) {
+            if (staticAudioAvailable) {
+              badge.innerText = `📂 伺服器靜態音檔就緒`;
+              badge.className = "bg-sky-100 text-sky-800 border border-sky-300 text-[11px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1";
+            } else {
+              badge.innerText = `⚡ 本機已快取 ${count}/${totalNeeds} 首`;
+            }
+          }
+          if (stats) stats.innerText = `${count} / ${totalNeeds} 軌已快取`;
+        };
+      } catch (e) {}
+    }
+
+    function base64ToArrayBuffer(base64) {
+      const binaryString = atob(base64);
+      const len = binaryString.length;
+      const bytes = new Uint8Array(len);
+      for (let i = 0; i < len; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      return bytes.buffer;
+    }
+
+    function pcmToWav(pcm16, sampleRate = 24000) {
+      const numChannels = 1;
+      const bytesPerSample = 2;
+      const blockAlign = numChannels * bytesPerSample;
+      const byteRate = sampleRate * blockAlign;
+      const dataSize = pcm16.length * bytesPerSample;
+      const buffer = new ArrayBuffer(44 + dataSize);
+      const view = new DataView(buffer);
+
+      function writeString(offset, string) {
+        for (let i = 0; i < string.length; i++) {
+          view.setUint8(offset + i, string.charCodeAt(i));
+        }
+      }
+
+      writeString(0, 'RIFF');
+      view.setUint32(4, 36 + dataSize, true);
+      writeString(8, 'WAVE');
+      writeString(12, 'fmt ');
+      view.setUint32(16, 16, true);
+      view.setUint16(20, 1, true); // PCM format
+      view.setUint16(22, numChannels, true);
+      view.setUint32(24, sampleRate, true);
+      view.setUint32(28, byteRate, true);
+      view.setUint16(32, blockAlign, true);
+      view.setUint16(34, 16, true);
+      writeString(36, 'data');
+      view.setUint32(40, dataSize, true);
+
+      for (let i = 0; i < pcm16.length; i++) {
+        view.setInt16(44 + i * 2, pcm16[i], true);
+      }
+
+      return new Blob([view], { type: 'audio/wav' });
+    }
+
+    // Call Gemini 3.8 Flash TTS API with exponential backoff
+    async function fetchGeminiTTSAudio(text, voiceName, directive, lang = 'zh') {
+      const promptDirective = (lang === 'zh')
+        ? `請以中文演出台灣兒童繪本角色。導演指導語氣：${directive}。\n台詞如下：${text}`
+        : `Perform with high theatrical emotion. Voice acting directive: ${directive}.\nSpoken text: ${text}`;
+
+      const payload = {
+        contents: [{
+          parts: [{ text: promptDirective }]
+        }],
+        generationConfig: {
+          responseModalities: ["AUDIO"],
+          speechConfig: {
+            voiceConfig: {
+              prebuiltVoiceConfig: { voiceName: voiceName }
+            }
+          }
+        }
+      };
+
+      const apiKey = ""; // Provided automatically in runtime environment
+      // Primary model: gemini-3.8-flash-tts with automatic fallback
+      const modelsToTry = [
+        "gemini-3.8-flash-tts",
+        "gemini-2.5-flash-preview-tts"
+      ];
+
+      for (const model of modelsToTry) {
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+        
+        let attempts = 0;
+        const maxAttempts = 2;
+        while (attempts < maxAttempts) {
+          try {
+            attempts++;
+            const response = await fetch(apiUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+              if (response.status === 404) break; // try next model
+              throw new Error(`HTTP ${response.status}`);
+            }
+
+            const result = await response.json();
+            const part = result?.candidates?.[0]?.content?.parts?.[0];
+            const audioData = part?.inlineData?.data;
+            const mimeType = part?.inlineData?.mimeType || "";
+
+            if (audioData) {
+              const sampleRateMatch = mimeType.match(/rate=(\d+)/);
+              const sampleRate = sampleRateMatch ? parseInt(sampleRateMatch[1], 10) : 24000;
+              const pcmBuffer = base64ToArrayBuffer(audioData);
+              const pcm16 = new Int16Array(pcmBuffer);
+              const wavBlob = pcmToWav(pcm16, sampleRate);
+              return wavBlob;
+            }
+          } catch (err) {
+            if (attempts >= maxAttempts) break;
+            await new Promise(r => setTimeout(r, 1000 * attempts));
+          }
+        }
+      }
+      throw new Error("無法連接 Gemini TTS 服務");
+    }
+
+    function getAudioContext() {
+      if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioContext.state === 'suspended') {
+        audioContext.resume();
+      }
+      return audioContext;
+    }
+
+    function playSfx(type) {
+      try {
+        const ctx = getAudioContext();
+        const now = ctx.currentTime;
+
+        if (type === 'horn') {
+          // Double bus horn
+          [440, 554.37].forEach(freq => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(freq, now);
+            gain.gain.setValueAtTime(0.2, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(now);
+            osc.stop(now + 0.5);
+          });
+          showToast("📢 叭！叭！公車雙音喇叭響起！");
+        } else if (type === 'screech') {
+          // Tire brake screech
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(1400, now);
+          osc.frequency.exponentialRampToValueAtTime(180, now + 0.45);
+          gain.gain.setValueAtTime(0.25, now);
+          gain.gain.linearRampToValueAtTime(0.01, now + 0.45);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.45);
+          showToast("💥 唧——！公車緊急煞停！");
+        } else if (type === 'engine') {
+          // Low engine rev
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(80, now);
+          osc.frequency.exponentialRampToValueAtTime(260, now + 0.7);
+          gain.gain.setValueAtTime(0.2, now);
+          gain.gain.linearRampToValueAtTime(0.01, now + 0.7);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.7);
+          showToast("🚗 轟隆隆！公車引擎發動！");
+        }
+      } catch (e) {
+        console.error("SFX Error:", e);
+      }
+    }
+
+    function stopAllAudio() {
+      if (currentAudioElement) {
+        currentAudioElement.pause();
+        currentAudioElement.currentTime = 0;
+        currentAudioElement = null;
+      }
+      document.getElementById('playingWave').classList.add('hidden');
+      storyScenes.forEach((_, i) => {
+        const card = document.getElementById(`scene-card-${i}`);
+        if (card) {
+          card.classList.remove('ring-4', 'ring-amber-400', 'bg-amber-50/40');
+        }
+        const btn = document.getElementById(`play-btn-${i}`);
+        if (btn) {
+          btn.innerHTML = `<span>▶️</span> 播放演出`;
+          btn.classList.remove('bg-rose-600');
+          btn.classList.add('bg-slate-900');
+        }
+      });
+      currentPlayingIdx = -1;
+    }
+
+    // Get or Fetch Audio Blob for Scene (Static File -> IndexedDB Cache -> Gemini TTS)
+    async function getSceneAudioUrl(sceneIdx, lang) {
+      const scene = storyScenes[sceneIdx];
+      const staticPath = `./audio/scene_${scene.id}_${lang}.wav`;
+      
+      // 1. Priority 1: Check if static audio file exists on the hosting server
+      if (staticAudioAvailable !== false) {
+        try {
+          const resp = await fetch(staticPath, { method: 'HEAD' });
+          if (resp.ok) {
+            staticAudioAvailable = true;
+            updateCacheStats();
+            return staticPath;
+          } else {
+            staticAudioAvailable = false;
+          }
+        } catch (e) {
+          // fetch HEAD failed (e.g. running locally without server or 404)
+          staticAudioAvailable = false;
+        }
+      }
+
+      // 2. Priority 2: Check Local IndexedDB / Memory Cache
+      const cacheKey = `scene_${scene.id}_${lang}`;
+      const cachedUrl = await getCachedAudio(cacheKey);
+      if (cachedUrl) return cachedUrl;
+
+      // 3. Priority 3: Fallback generate via Gemini 3.8 Flash TTS
+      const text = (lang === 'zh') ? scene.zhText : scene.enText;
+      const wavBlob = await fetchGeminiTTSAudio(text, scene.voice, scene.directorPrompt, lang);
+      const newUrl = await setCachedAudio(cacheKey, wavBlob);
+      return newUrl;
+    }
+
+    // Helper to get raw WAV Blob (for ZIP packaging)
+    async function getSceneAudioBlob(sceneIdx, lang) {
+      const scene = storyScenes[sceneIdx];
+      const cacheKey = `scene_${scene.id}_${lang}`;
+
+      // Check IndexedDB
+      if (dbInstance) {
+        const cachedBlob = await new Promise((resolve) => {
+          try {
+            const tx = dbInstance.transaction(STORE_NAME, 'readonly');
+            const req = tx.objectStore(STORE_NAME).get(cacheKey);
+            req.onsuccess = () => resolve(req.result || null);
+            req.onerror = () => resolve(null);
+          } catch(e) { resolve(null); }
+        });
+        if (cachedBlob) return cachedBlob;
+      }
+
+      // Generate via Gemini 3.8 Flash TTS
+      const text = (lang === 'zh') ? scene.zhText : scene.enText;
+      const wavBlob = await fetchGeminiTTSAudio(text, scene.voice, scene.directorPrompt, lang);
+      await setCachedAudio(cacheKey, wavBlob);
+      return wavBlob;
+    }
+
+    function renderStoryScenes() {
+      const container = document.getElementById('scenesContainer');
+      container.innerHTML = storyScenes.map((scene, idx) => {
+        const isDriver = scene.role === 'driver';
+        const roleLabel = isDriver ? '30歲公車司機' : '12歲頑皮小鴿子';
+        const roleBadge = isDriver ? 'bg-sky-100 text-sky-900 border-sky-300' : 'bg-amber-100 text-amber-950 border-amber-300';
+
+        return `
+        <div id="scene-card-${idx}" class="bg-white rounded-3xl p-5 border-2 border-slate-200 shadow-md hover:shadow-xl transition-all duration-300 relative flex flex-col justify-between">
+          <div>
+            <!-- Header Badges -->
+            <div class="flex items-center justify-between gap-2 mb-3">
+              <span class="text-xs font-black px-2.5 py-1 rounded-full border ${scene.badgeColor}">
+                ${scene.title}
+              </span>
+              <span class="text-xs font-bold px-2 py-0.5 rounded-lg border ${roleBadge} flex items-center gap-1 shadow-sm">
+                <span>${scene.charIcon}</span> ${roleLabel}
+              </span>
+            </div>
+
+            <!-- Dialogue Bubble -->
+            <div class="bg-slate-50 rounded-2xl p-4 border border-slate-200 mb-3 relative">
+              <div class="text-xs font-mono text-indigo-700 font-black mb-1 uppercase tracking-wide flex items-center justify-between">
+                <span>🇺🇸 莫·威廉斯原著英文</span>
+                <button onclick="playSingleSceneAudio(${idx}, 'en')" class="hover:underline text-[11px] text-indigo-600 font-sans font-bold flex items-center gap-1">
+                  <span>🔊</span> 聽英文原音
+                </button>
+              </div>
+              <p class="text-sm md:text-base font-bold text-slate-900 leading-snug font-cartoon">${scene.enText}</p>
+              
+              <div class="my-2.5 border-t border-slate-200"></div>
+
+              <div class="text-xs font-mono text-amber-800 font-black mb-1 uppercase tracking-wide flex items-center justify-between">
+                <span>🇹🇼 台灣繪本中文演繹</span>
+                <button onclick="playSingleSceneAudio(${idx}, 'zh')" class="hover:underline text-[11px] text-amber-700 font-sans font-bold flex items-center gap-1">
+                  <span>🔊</span> 聽中文演繹
+                </button>
+              </div>
+              <p class="text-sm md:text-base text-slate-800 font-semibold leading-relaxed">${scene.zhText}</p>
+            </div>
+
+            <!-- Director Prompt Guide -->
+            <div class="text-xs text-slate-600 bg-amber-50/80 p-2.5 rounded-xl border border-amber-200 flex items-start gap-2">
+              <span class="text-sm">🎬</span>
+              <div>
+                <strong class="text-amber-950 font-black">Gemini 3.8 Flash TTS 情感指令：</strong>
+                <span class="text-amber-900">${scene.directorPrompt}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom Actions -->
+          <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+            <span class="text-[11px] font-bold text-slate-400">
+              音色標記：${scene.voice} (${isDriver ? '男中音' : '高亢少年'})
+            </span>
+
+            <button id="play-btn-${idx}" onclick="playScene(${idx})" class="text-xs md:text-sm font-black px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white shadow-md transition active:scale-95 flex items-center gap-1.5">
+              <span>▶️</span> 播放演出
+            </button>
+          </div>
+        </div>
+        `;
+      }).join('');
+    }
+
+    function setPlayMode(mode) {
+      currentPlayMode = mode;
+      ['zh', 'en', 'both'].forEach(m => {
+        const btn = document.getElementById(`mode-${m}`);
+        if (m === mode) {
+          btn.className = "px-2.5 py-1 text-xs md:text-sm font-black rounded-xl transition-all bg-white text-amber-900 shadow";
+        } else {
+          btn.className = "px-2.5 py-1 text-xs md:text-sm font-bold rounded-xl transition-all text-slate-600 hover:text-slate-900";
+        }
+      });
+
+      const modeNames = {
+        zh: "🇹🇼 純中文劇場（Gemini 3.8 Flash TTS 生動說故事）",
+        en: "🇺🇸 純英文原著（Gemini 3.8 Flash TTS 美式原音）",
+        both: "🎭 雙語雙重奏（英文先講 ➔ 中文跟進表演）"
+      };
+      showToast(`已切換演出模式：\n【${modeNames[mode]}】`);
+    }
+
+    async function playScene(idx) {
+      if (currentPlayingIdx === idx) {
+        stopAllAudio();
+        isAutoPlayingAll = false;
+        updateGlobalBtn();
+        updateStatus("已暫停演出。");
+        return;
+      }
+
+      stopAllAudio();
+      currentPlayingIdx = idx;
+      highlightScene(idx);
+
+      const scene = storyScenes[idx];
+      updateStatus(`正在載入第 ${scene.id} 幕語音（Gemini 3.8 Flash TTS）...`);
+
+      const onSceneFinished = () => {
+        unhighlightScene(idx);
+        if (isAutoPlayingAll && currentPlayingIdx < storyScenes.length - 1) {
+          setTimeout(() => {
+            playScene(currentPlayingIdx + 1);
+          }, 800);
+        } else {
+          isAutoPlayingAll = false;
+          updateGlobalBtn();
+          updateStatus("演出完成！可點擊下一幕或連續播放全劇。");
+        }
+      };
+
+      try {
+        if (currentPlayMode === 'zh') {
+          updateStatus(`正在演出第 ${scene.id} 幕（中文）：【${scene.character}】${scene.directorPrompt}`);
+          const url = await getSceneAudioUrl(idx, 'zh');
+          playAudioUrl(url, onSceneFinished);
+        } else if (currentPlayMode === 'en') {
+          updateStatus(`正在演出第 ${scene.id} 幕（英文）：【${scene.character}】${scene.directorPrompt}`);
+          const url = await getSceneAudioUrl(idx, 'en');
+          playAudioUrl(url, onSceneFinished);
+        } else {
+          // Double feature: English first, then Chinese acting
+          updateStatus(`第 ${scene.id} 幕雙語雙重奏（1/2 原著英文）：【${scene.character}】`);
+          const enUrl = await getSceneAudioUrl(idx, 'en');
+          playAudioUrl(enUrl, async () => {
+            setTimeout(async () => {
+              updateStatus(`第 ${scene.id} 幕雙語雙重奏（2/2 中文演繹）：【${scene.character}】`);
+              const zhUrl = await getSceneAudioUrl(idx, 'zh');
+              playAudioUrl(zhUrl, onSceneFinished);
+            }, 400);
+          });
+        }
+      } catch (err) {
+        console.error("Scene playback error:", err);
+        showToast("⚠️ 語音載入失敗，請確認網路連線或稍後再試。");
+        unhighlightScene(idx);
+      }
+    }
+
+    async function playSingleSceneAudio(idx, lang) {
+      stopAllAudio();
+      currentPlayingIdx = idx;
+      highlightScene(idx);
+      const scene = storyScenes[idx];
+
+      updateStatus(`正在載入第 ${scene.id} 幕【${lang === 'zh' ? '中文' : '英文'}】擬真音訊...`);
+
+      try {
+        const url = await getSceneAudioUrl(idx, lang);
+        updateStatus(`正在播放第 ${scene.id} 幕【${lang === 'zh' ? '中文' : '英文'}】：${scene.character}`);
+        playAudioUrl(url, () => {
+          unhighlightScene(idx);
+          currentPlayingIdx = -1;
+        });
+      } catch (err) {
+        console.error("Single audio error:", err);
+        showToast("⚠️ 語音生成失敗");
+        unhighlightScene(idx);
+      }
+    }
+
+    function highlightScene(idx) {
+      const card = document.getElementById(`scene-card-${idx}`);
+      if (card) {
+        card.classList.add('ring-4', 'ring-amber-400', 'bg-amber-50/40');
+        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      const btn = document.getElementById(`play-btn-${idx}`);
+      if (btn) {
+        btn.innerHTML = `<span>⏸️</span> 暫停演出`;
+        btn.classList.remove('bg-slate-900');
+        btn.classList.add('bg-rose-600');
+      }
+    }
+
+    function unhighlightScene(idx) {
+      const card = document.getElementById(`scene-card-${idx}`);
+      if (card) {
+        card.classList.remove('ring-4', 'ring-amber-400', 'bg-amber-50/40');
+      }
+      const btn = document.getElementById(`play-btn-${idx}`);
+      if (btn) {
+        btn.innerHTML = `<span>▶️</span> 播放演出`;
+        btn.classList.remove('bg-rose-600');
+        btn.classList.add('bg-slate-900');
+      }
+    }
+
+    function togglePlayAll() {
+      if (isAutoPlayingAll) {
+        stopAllAudio();
+        isAutoPlayingAll = false;
+        updateGlobalBtn();
+        updateStatus("已停止連續播放。");
+      } else {
+        isAutoPlayingAll = true;
+        updateGlobalBtn();
+        playScene(0);
+      }
+    }
+
+    function updateGlobalBtn() {
+      const icon = document.getElementById('globalPlayIcon');
+      const text = document.getElementById('globalPlayText');
+      const btn = document.getElementById('globalPlayBtn');
+      if (isAutoPlayingAll) {
+        icon.innerText = "⏹️";
+        text.innerText = "停止連續播放";
+        btn.classList.remove('bg-emerald-600', 'hover:bg-emerald-700');
+        btn.classList.add('bg-rose-600', 'hover:bg-rose-700');
+      } else {
+        icon.innerText = "▶️";
+        text.innerText = "連續播放全劇";
+        btn.classList.remove('bg-rose-600', 'hover:bg-rose-700');
+        btn.classList.add('bg-emerald-600', 'hover:bg-emerald-700');
+      }
+    }
+
+    // Role Voice Test Function
+    async function testRoleVoice(role, lang) {
+      stopAllAudio();
+      updateStatus(`正在生成 ${role === 'driver' ? '公車司機' : '小鴿子'} 的 ${lang === 'zh' ? '中文' : '英文'} 試聽語音...`);
+      
+      const isDriver = role === 'driver';
+      const voice = isDriver ? 'Charon' : 'Puck';
+      const directive = isDriver
+        ? 'Speak like a warm, relaxed, reliable 30-year-old male bus driver.'
+        : 'Speak like a playful, whiny 12-year-old boy begging playfully.';
+      
+      const text = (lang === 'zh')
+        ? (isDriver ? '你好，我是公車司機。請幫我看著公車，記住千萬別讓鴿子開公車！' : '嘿！就讓我開一下公車嘛！我只握方向盤就好，求求你啦！')
+        : (isDriver ? "Hi! I'm the bus driver. Remember: Don't let the pigeon drive the bus!" : "Hey, can I drive the bus? Please? I'll be careful!");
+
+      try {
+        const wavBlob = await fetchGeminiTTSAudio(text, voice, directive, lang);
+        const url = URL.createObjectURL(wavBlob);
+        playAudioUrl(url, () => {
+          updateStatus("試聽播放完成。");
+        });
+      } catch (e) {
+        showToast("⚠️ 試聽生成失敗，請確認網路連線。");
+      }
+    }
+
+    // Batch Pre-generate All Scenes and Export as a ZIP package
+    let isBatching = false;
+    async function startBatchAndExportZip() {
+      if (isBatching) return;
+      if (typeof JSZip === 'undefined') {
+        showToast("⚠️ JSZip 程式庫尚未載入，請確認網路連線。");
+        return;
+      }
+
+      isBatching = true;
+      const btn = document.getElementById('batchZipBtn');
+      const progress = document.getElementById('batchProgressBar');
+      const statusText = document.getElementById('batchStatusText');
+
+      btn.disabled = true;
+      btn.innerHTML = `<span>⏳</span> 打包生成中，請稍候...`;
+
+      const zip = new JSZip();
+      const audioFolder = zip.folder("audio");
+
+      const tasks = [];
+      storyScenes.forEach((scene, i) => {
+        tasks.push({ idx: i, lang: 'zh', filename: `scene_${scene.id}_zh.wav`, label: `第 ${scene.id} 幕 [中文]` });
+        tasks.push({ idx: i, lang: 'en', filename: `scene_${scene.id}_en.wav`, label: `第 ${scene.id} 幕 [英文]` });
+      });
+
+      let completed = 0;
+      for (const t of tasks) {
+        statusText.innerText = `[${completed + 1}/${tasks.length}] 正在生成並封裝：${t.label}...`;
+        try {
+          const blob = await getSceneAudioBlob(t.idx, t.lang);
+          if (blob) {
+            audioFolder.file(t.filename, blob);
+          }
+        } catch (e) {
+          console.warn(`Failed packaging ${t.label}:`, e);
+        }
+        completed++;
+        const pct = Math.round((completed / tasks.length) * 100);
+        progress.style.width = `${pct}%`;
+        await new Promise(r => setTimeout(r, 600)); // Respect API limits
+      }
+
+      statusText.innerText = `正在壓縮為 pigeon_audio.zip...`;
+      try {
+        const zipBlob = await zip.generateAsync({ type: "blob" });
+        const downloadUrl = URL.createObjectURL(zipBlob);
+        const a = document.createElement('a');
+        a.href = downloadUrl;
+        a.download = 'pigeon_audio.zip';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(downloadUrl);
+
+        statusText.innerText = "✅ 打包完成！pigeon_audio.zip 已開始下載。";
+        btn.innerHTML = `<span>🎉</span> 下載完成！點擊可再次打包`;
+        showToast("🎉 32 首全劇音檔已成功打包下載！\n解壓縮出 audio 資料夾後，與 HTML 一起上傳即可！", 4500);
+      } catch (err) {
+        console.error("ZIP Generation error:", err);
+        statusText.innerText = "❌ ZIP 壓縮失敗。";
+        showToast("❌ 壓縮失敗，請稍候重試。");
+      }
+
+      isBatching = false;
+      btn.disabled = false;
+      updateCacheStats();
+    }
+
+    function clearAllCache() {
+      if (!dbInstance) return;
+      try {
+        const tx = dbInstance.transaction(STORE_NAME, 'readwrite');
+        tx.objectStore(STORE_NAME).clear();
+        tx.oncomplete = () => {
+          memoryCache.clear();
+          updateCacheStats();
+          document.getElementById('batchProgressBar').style.width = '0%';
+          document.getElementById('batchStatusText').innerText = "快取已清空。";
+          showToast("🗑️ 快取已清除完畢。");
+        };
+      } catch (e) {
+        console.warn("Clear cache failed:", e);
+      }
+    }
+
+    function openStudioModal() {
+      document.getElementById('studioModal').classList.remove('hidden');
+      updateCacheStats();
+    }
+
+    function closeStudioModal() {
+      document.getElementById('studioModal').classList.add('hidden');
+    }
+
+    function updateStatus(msg) {
+      document.getElementById('statusMessage').innerText = msg;
+    }
+
+    function showToast(msg, duration = 3200) {
+      const t = document.getElementById('toast');
+      t.innerText = msg;
+      t.classList.remove('hidden');
+      setTimeout(() => {
+        t.classList.add('hidden');
+      }, duration);
+    }
+
+    window.addEventListener('DOMContentLoaded', async () => {
+      renderStoryScenes();
+      await initDB();
+    });
+  </script>
+</body>
+</html>

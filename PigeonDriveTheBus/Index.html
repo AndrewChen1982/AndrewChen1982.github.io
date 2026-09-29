@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>別讓鴿子開公車！- 擬真角色雙語有聲劇場</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Noto+Sans+TC:wght@400;600;800;900&display=swap" rel="stylesheet">
+  
+  <style>
+    body {
+      font-family: 'Noto Sans TC', sans-serif;
+      background-color: #fbf7ee;
+    }
+    .font-cartoon {
+      font-family: 'Fredoka One', 'Noto Sans TC', cursive, sans-serif;
+    }
+    @keyframes wavePulse {
+      0%, 100% { height: 6px; }
+      50% { height: 28px; }
+    }
+    .wave-bar {
+      animation: wavePulse 0.8s ease-in-out infinite;
+    }
+    .wave-bar:nth-child(2) { animation-delay: 0.15s; }
+    .wave-bar:nth-child(3) { animation-delay: 0.3s; }
+    .wave-bar:nth-child(4) { animation-delay: 0.45s; }
+    .wave-bar:nth-child(5) { animation-delay: 0.6s; }
+
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1ebd8;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #e09f3e;
+      border-radius: 999px;
+    }
+  </style>
+</head>
+<body class="text-slate-800 antialiased min-h-screen flex flex-col selection:bg-amber-300 selection:text-amber-950">
+
+  <!-- Top Sticky Navigation -->
+  <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b-4 border-amber-400 shadow-md">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <span class="text-3xl filter drop-shadow hover:rotate-12 transition transform cursor-pointer" onclick="playSfx('horn')" title="點擊按喇叭！">🕊️🚌</span>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[11px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
+              🎭 擬真雙語有聲劇場
+            </span>
+            <span id="cacheBadge" class="bg-emerald-100 text-emerald-800 border border-emerald-300 text-[11px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+              ✨ 32 首高音質音檔已就緒
+            </span>
+          </div>
+          <h1 class="text-lg md:text-2xl font-black text-slate-900 font-cartoon tracking-wide">
+            別讓鴿子開公車！ <span class="text-xs md:text-sm font-bold text-slate-500 font-sans">全劇擬真雙語演出</span>
+          </h1>
+        </div>
+      </div>
+
+      <!-- Controls: Playback Mode & Continuous Play -->
+      <div class="flex items-center gap-2 flex-wrap">
+        <!-- Performance Mode Selector -->
+        <div class="flex items-center bg-slate-100 rounded-2xl p-1 border-2 border-slate-200 shadow-inner">
+          <button id="mode-zh" onclick="setPlayMode('zh')" class="px-2.5 py-1 text-xs md:text-sm font-black rounded-xl transition-all bg-white text-amber-900 shadow">
+            🇹🇼 中文劇場
+          </button>
+          <button id="mode-en" onclick="setPlayMode('en')" class="px-2.5 py-1 text-xs md:text-sm font-bold rounded-xl transition-all text-slate-600 hover:text-slate-900">
+            🇺🇸 英文原著
+          </button>
+          <button id="mode-both" onclick="setPlayMode('both')" class="px-2.5 py-1 text-xs md:text-sm font-bold rounded-xl transition-all text-slate-600 hover:text-slate-900 flex items-center gap-1">
+            🎭 雙語雙重奏
+          </button>
+        </div>
+
+        <!-- Continuous Play Button -->
+        <button id="globalPlayBtn" onclick="togglePlayAll()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs md:text-sm px-4 py-2 rounded-xl shadow-md transition-all flex items-center gap-1.5 active:scale-95">
+          <span id="globalPlayIcon">▶️</span> <span id="globalPlayText">連續播放全劇</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Status & Dynamic Audio Visualizer Bar -->
+  <div id="statusBar" class="bg-amber-50 border-b border-amber-200 px-4 py-2 text-xs md:text-sm text-amber-950 flex items-center justify-between shadow-inner">
+    <div class="max-w-6xl mx-auto w-full flex items-center justify-between">
+      <div class="flex items-center gap-2 overflow-hidden">
+        <span id="statusIndicator" class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping flex-shrink-0"></span>
+        <span id="statusMessage" class="font-bold truncate">準備就緒：點選任一幕的「▶️ 播放演出」或「連續播放全劇」，享受生動趣味有聲劇場！</span>
+      </div>
+      <div id="playingWave" class="hidden flex items-end gap-1 h-5 flex-shrink-0 ml-3">
+        <div class="w-1 bg-amber-600 rounded-full wave-bar"></div>
+        <div class="w-1 bg-orange-600 rounded-full wave-bar"></div>
+        <div class="w-1 bg-amber-500 rounded-full wave-bar"></div>
+        <div class="w-1 bg-orange-500 rounded-full wave-bar"></div>
+        <div class="w-1 bg-amber-700 rounded-full wave-bar"></div>
+      </div>
+    </div>
+  </div>
+
+  <main class="max-w-6xl mx-auto px-4 py-8 flex-1 w-full">
+    <!-- Story Introduction & Character Profile Card -->
+    <div class="bg-white rounded-3xl p-6 border-4 border-amber-300 shadow-xl mb-8 flex flex-col md:flex-row items-center gap-6 relative overflow-hidden">
+      <div class="absolute -right-8 -top-8 w-36 h-36 bg-amber-100 rounded-full opacity-40 pointer-events-none"></div>
+
+      <div class="w-24 h-24 md:w-28 md:h-28 rounded-2xl bg-amber-100 border-2 border-amber-300 flex items-center justify-center text-5xl shadow-inner flex-shrink-0">
+        🚌
+      </div>
+      <div class="flex-1 text-center md:text-left">
+        <div class="flex items-center justify-center md:justify-start gap-2 mb-1.5 flex-wrap">
+          <span class="text-xs font-black text-amber-900 bg-amber-100 border border-amber-300 px-2.5 py-0.5 rounded-md">
+            全 16 幕完整收錄・32 首雙語語音
+          </span>
+          <span class="text-xs font-bold text-slate-500">作者：莫·威廉斯 (Mo Willems)</span>
+        </div>
+        <h2 class="text-xl md:text-3xl font-black text-slate-900 font-cartoon">
+          《別讓鴿子開公車！》全角色雙語有聲劇
+        </h2>
+        
+        <!-- Standardized Character Voice Personas -->
+        <div class="mt-3 flex flex-wrap gap-2.5 justify-center md:justify-start">
+          <div class="bg-sky-50 border border-sky-200 rounded-2xl px-3 py-1.5 text-xs text-sky-950 flex items-center gap-2 font-bold shadow-sm">
+            <span class="text-base">👨‍✈️</span>
+            <div>
+              <span class="text-sky-900 font-black">公車司機：</span>
+              <span class="text-sky-700 font-medium">30歲隨和男性・穩重親切・值得信賴</span>
+            </div>
+          </div>
+          <div class="bg-amber-50 border border-amber-200 rounded-2xl px-3 py-1.5 text-xs text-amber-950 flex items-center gap-2 font-bold shadow-sm">
+            <span class="text-base">🕊️</span>
+            <div>
+              <span class="text-amber-900 font-black">小鴿子：</span>
+              <span class="text-amber-800 font-medium">12歲男孩性格・愛鑽漏洞・死纏爛打・打滾大暴走</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick bus soundboard -->
+      <div class="flex md:flex-col gap-2 flex-shrink-0 w-full md:w-auto justify-center">
+        <button onclick="playSfx('horn')" class="px-3.5 py-2 bg-amber-100 hover:bg-amber-200 text-amber-950 rounded-xl text-xs font-black border border-amber-300 transition flex items-center justify-center gap-1 shadow-sm active:scale-95">
+          📢 叭叭公車喇叭
+        </button>
+        <button onclick="playSfx('screech')" class="px-3.5 py-2 bg-rose-100 hover:bg-rose-200 text-rose-950 rounded-xl text-xs font-black border border-rose-300 transition flex items-center justify-center gap-1 shadow-sm active:scale-95">
+          💥 輪胎急煞車
+        </button>
+        <button onclick="playSfx('engine')" class="px-3.5 py-2 bg-sky-100 hover:bg-sky-200 text-sky-950 rounded-xl text-xs font-black border border-sky-300 transition flex items-center justify-center gap-1 shadow-sm active:scale-95">
+          🚗 引擎拉轉聲
+        </button>
+      </div>
+    </div>
+
+    <!-- Scenes Grid Container -->
+    <div id="scenesContainer" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <!-- Injected by JavaScript -->
+    </div>
+  </main>
+
+  <!-- Toast Notification element -->
+  <div id="toast" class="fixed bottom-16 left-1/2 -translate-x-1/2 bg-slate-900/90 text-white text-xs md:text-sm px-5 py-3 rounded-2xl shadow-2xl z-50 hidden transition-all duration-300 max-w-md w-11/12 text-center whitespace-pre-line border border-slate-700"></div>
+
+  <script>
+    // Full 16-scene data mapped to audio/scene_{id}_{lang}.wav
+    const storyScenes = [
+      {
+        id: 1,
+        title: "第 1 幕：司機的託付",
+        role: "driver",
+        voice: "Charon",
+        character: "公車司機",
+        charIcon: "👨‍✈️",
+        enText: "Hi! I'm the bus driver. Listen, I've got to leave for a little while, so can you watch things for me until I get back? Thanks. Oh, and remember:",
+        zhText: "嗨！我是公車司機。聽好囉，我得離開一下下，所以在我回來之前，你可以幫我照看一下現場嗎？謝謝你啦。喔，對了，記住：",
+        directorPrompt: "溫暖、隨和、值得信賴的30歲司機大哥哥語氣，親切叮嚀現場觀眾。",
+        badgeColor: "bg-sky-100 text-sky-800 border-sky-300"
+      },
+      {
+        id: 2,
+        title: "第 2 幕：鄭重警告！",
+        role: "driver",
+        voice: "Charon",
+        character: "司機嚴肅警告",
+        charIcon: "🛑",
+        enText: "Don't Let the Pigeon Drive the Bus!",
+        zhText: "千萬別讓鴿子開公車！",
+        directorPrompt: "鄭重嚴肅、極具戲劇張力的告誡語氣，莊重中帶著幽默趣味。",
+        badgeColor: "bg-rose-100 text-rose-800 border-rose-300"
+      },
+      {
+        id: 3,
+        title: "第 3 幕：小鴿子鬼祟登場",
+        role: "pigeon",
+        voice: "Puck",
+        character: "小鴿子",
+        charIcon: "🕊️",
+        enText: "I thought he'd never leave.",
+        zhText: "哼，我還以為他永遠都不會走咧！",
+        directorPrompt: "頑皮淘氣的小男孩背地裡竊竊私語，帶著狡黠狡猾的偷笑。",
+        badgeColor: "bg-amber-100 text-amber-800 border-amber-300"
+      },
+      {
+        id: 4,
+        title: "第 4 幕：若無其事的試探",
+        role: "pigeon",
+        voice: "Puck",
+        character: "小鴿子",
+        charIcon: "🕊️",
+        enText: "Hey, can I drive the bus?",
+        zhText: "嘿！那我來開公車好不好啊？",
+        directorPrompt: "瞪大無辜雙眼、假裝天真無邪，故作輕鬆地拋出巨大要求。",
+        badgeColor: "bg-amber-100 text-amber-800 border-amber-300"
+      },
+      {
+        id: 5,
+        title: "第 5 幕：裝可憐軟磨硬泡",
+        role: "pigeon",
+        voice: "Puck",
+        character: "小鴿子",
+        charIcon: "🥺",
+        enText: "Please? I'll be careful.",
+        zhText: "拜託啦？求求你嘛！我一定會非常非常小心的！",
+        directorPrompt: "極盡撒嬌哀求，水汪汪無辜大眼睛、拉長語調的可憐懇求。",
+        badgeColor: "bg-purple-100 text-purple-800 border-purple-300"
+      },
+      {
+        id: 6,
+        title: "第 6 幕：討價還價吹大牛",
+        role: "pigeon",
+        voice: "Puck",
+        character: "小鴿子",
+        charIcon: "😏",
+        enText: "I know what, I'll just steer. My cousin Harry drives a bus almost every day!",
+        zhText: "我想到了！我只握方向盤就好！我表哥哈利幾乎每天都在開公車耶！",
+        directorPrompt: "鑽漏洞討價還價、搬出表哥誇大其詞，語速飛快又自信滿滿。",
+        badgeColor: "bg-amber-100 text-amber-800 border-amber-300"
+      },
+      {
+        id: 7,
+        title: "第 7 幕：傲嬌與冷眼相對",
+        role: "pigeon",
+        voice: "Puck",
+        character: "小鴿子",
+        charIcon: "😒",
+        enText: "True story.",
+        zhText: "這可是真人真事喔，沒騙你吧！",
+        directorPrompt: "雙手叉腰、冷眼死不認輸，嘴硬到底的傲嬌撇嘴。",
+        badgeColor: "bg-slate-100 text-slate-800 border-slate-300"
+      },
+      {
+        id: 8,
+        title: "第 8 幕：狂暴幻想！公車狂飆",
+        role: "pigeon",
+        voice: "Fenrir",
+        character: "小鴿子",
+        charIcon: "🏎️",
+        enText: "VROOM-VROOM VROOMY VROOM-VROOM! PIGEON AT THE WHEEL!",
+        zhText: "轟隆隆隆！叭叭！飆速轟隆隆！鴿子老司機掌控方向盤啦！",
+        directorPrompt: "瘋狂興奮、大吼大叫模仿引擎暴走狂飆！能量滿點、高速狂野！",
+        badgeColor: "bg-orange-100 text-orange-800 border-orange-300"
+      },
+      {
+        id: 9,
+        title: "第 9 幕：被拒絕後的沮喪抱怨",
+        role: "pigeon",
+        voice: "Puck",
+        character: "小鴿子",
+        charIcon: "😞",
+        enText: "No? I never get to do anything!",
+        zhText: "還是不行？嗚……我永遠都沒有機會做任何好玩的事啦！",
+        directorPrompt: "嘟著嘴鬧彆扭、深深嘆氣，滿腹委屈與牢騷。",
+        badgeColor: "bg-indigo-100 text-indigo-800 border-indigo-300"
+      },
+      {
+        id: 10,
+        title: "第 10 幕：假裝玩遊戲討便宜",
+        role: "pigeon",
+        voice: "Puck",
+        character: "小鴿子",
+        charIcon: "🏃",
+        enText: "Hey, I've got an idea. Let's play 'Drive the Bus'! I'll go first!",
+        zhText: "嘿！我又想到一個好點子了！我們來玩『開公車』的家家酒遊戲！我先開！",
+        directorPrompt: "鬼靈精怪提議玩遊戲，說到「我先開」時瞬間拔腿衝向駕駛座！",
+        badgeColor: "bg-amber-100 text-amber-800 border-amber-300"
+      },
+      {
+        id: 11,
+        title: "第 11 幕：退而求其次的試探",
+        role: "pigeon",
+        voice: "Puck",
+        character: "小鴿子",
+        charIcon: "👀",
+        enText: "C'mon! Just to the corner and back!",
+        zhText: "來嘛！拜託啦！就開到街角轉個彎就開回來好不好！",
+        directorPrompt: "探頭探腦、不斷妥協討價還價，軟語懇求。",
+        badgeColor: "bg-amber-100 text-amber-800 border-amber-300"
+      },
+      {
+        id: 12,
+        title: "第 12 幕：連環八招！情緒大變臉",
+        role: "pigeon",
+        voice: "Puck",
+        character: "小鴿子",
+        charIcon: "🎭",
+        enText: "I'll be your best friend! How 'bout I give you a fiver? What's the problem!? It's just a bus!!! No fair! I bet your mum would let me. I have dreams, you know! Fine.",
+        zhText: "我會當你最好的朋友！那我給你五塊錢怎麼樣？到底是有什麼問題啦！？這只不過是一台公車而已啊！太不公平了！我敢說你媽媽一定會答應我的！我也是有夢想的，你懂不懂啊！好啦……隨便啦。",
+        directorPrompt: "情緒過山車大翻轉：討好 ➔ 賄賂 ➔ 惱羞 ➔ 拍翅抗議 ➔ 道德綁架 ➔ 裝哲學家 ➔ 瞬間冷淡「隨便啦」。",
+        badgeColor: "bg-rose-100 text-rose-800 border-rose-300"
+      },
+      {
+        id: 13,
+        title: "第 13 幕：世紀大崩潰暴走！",
+        role: "pigeon",
+        voice: "Fenrir",
+        character: "小鴿子",
+        charIcon: "💥",
+        enText: "LET ME DRIVE THE BUS!!!",
+        zhText: "讓我開公車啦啊啊啊啊啊啊！！！",
+        directorPrompt: "使出吃奶力氣崩潰尖叫！宛如幼童在地上瘋狂打滾暴走的大咆哮！",
+        badgeColor: "bg-red-200 text-red-950 border-red-400"
+      },
+      {
+        id: 14,
+        title: "第 14 幕：司機驚喜回歸",
+        role: "driver",
+        voice: "Charon",
+        character: "公車司機",
+        charIcon: "👮",
+        enText: "I'm back! You didn't let the pigeon drive the bus, did you? Great! Thanks a lot. (Uh-oh!)",
+        zhText: "我回來啦！你們剛才沒有讓那隻鴿子開公車吧？太棒了！真是太感謝你們了。（呃喔，被抓包了！）",
+        directorPrompt: "司機精神抖擻地稱讚大家；最後以鴿子做虧心事被抓包的氣音結尾。",
+        badgeColor: "bg-emerald-100 text-emerald-800 border-emerald-300"
+      },
+      {
+        id: 15,
+        title: "第 15 幕：公車駛離，落寞無語",
+        role: "driver",
+        voice: "Charon",
+        character: "公車駛離",
+        charIcon: "💨",
+        enText: "Bye!",
+        zhText: "再見啦大家！下次見！",
+        directorPrompt: "司機熱情道別，伴隨公車遠去的隆隆聲與鴿子落寞的背影。",
+        badgeColor: "bg-slate-100 text-slate-800 border-slate-300"
+      },
+      {
+        id: 16,
+        title: "第 16 幕：終極大反轉！大卡車登場",
+        role: "pigeon",
+        voice: "Puck",
+        character: "小鴿子",
+        charIcon: "🚛",
+        enText: "Hey...",
+        zhText: "嘿……（賊心不死、眼睛再度發亮……）",
+        directorPrompt: "看到巨型大卡車駛過，眼睛瞬間一亮，低沉而意味深長的氣音讚嘆。",
+        badgeColor: "bg-red-100 text-red-900 border-red-300"
+      }
+    ];
+
+    let currentPlayMode = 'zh'; // 'zh', 'en', 'both'
+    let currentPlayingIdx = -1;
+    let isAutoPlayingAll = false;
+    let currentAudioElement = null;
+    let audioContext = null;
+
+    // Helper: Build relative path to static audio file
+    function getSceneAudioUrl(sceneId, lang) {
+      return `audio/scene_${sceneId}_${lang}.wav`;
+    }
+
+    // Audio Playback Controller
+    function playAudioUrl(url, onEnded) {
+      if (currentAudioElement) {
+        currentAudioElement.pause();
+        currentAudioElement.currentTime = 0;
+        currentAudioElement = null;
+      }
+
+      const wave = document.getElementById('playingWave');
+      if (wave) wave.classList.remove('hidden');
+
+      const audio = new Audio(url);
+      currentAudioElement = audio;
+
+      audio.onended = () => {
+        if (wave) wave.classList.add('hidden');
+        currentAudioElement = null;
+        if (typeof onEnded === 'function') {
+          onEnded();
+        }
+      };
+
+      audio.onerror = (e) => {
+        console.error("Audio playback error:", e, url);
+        if (wave) wave.classList.add('hidden');
+        showToast(`⚠️ 找不到音檔：${url}\n請確認 audio 資料夾是否與網頁在同一目錄。`);
+        if (typeof onEnded === 'function') {
+          onEnded();
+        }
+      };
+
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise.catch((err) => {
+          console.warn("Audio play prevented or interrupted:", err);
+          if (wave) wave.classList.add('hidden');
+        });
+      }
+    }
+
+    function getAudioContext() {
+      if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioContext.state === 'suspended') {
+        audioContext.resume();
+      }
+      return audioContext;
+    }
+
+    // Web Audio API Synthesized Bus SFX
+    function playSfx(type) {
+      try {
+        const ctx = getAudioContext();
+        const now = ctx.currentTime;
+
+        if (type === 'horn') {
+          // Double bus horn
+          [440, 554.37].forEach(freq => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(freq, now);
+            gain.gain.setValueAtTime(0.2, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(now);
+            osc.stop(now + 0.5);
+          });
+          showToast("📢 叭！叭！公車雙音喇叭響起！");
+        } else if (type === 'screech') {
+          // Tire brake screech
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(1400, now);
+          osc.frequency.exponentialRampToValueAtTime(180, now + 0.45);
+          gain.gain.setValueAtTime(0.25, now);
+          gain.gain.linearRampToValueAtTime(0.01, now + 0.45);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.45);
+          showToast("💥 唧——！公車緊急煞停！");
+        } else if (type === 'engine') {
+          // Low engine rev
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(80, now);
+          osc.frequency.exponentialRampToValueAtTime(260, now + 0.7);
+          gain.gain.setValueAtTime(0.2, now);
+          gain.gain.linearRampToValueAtTime(0.01, now + 0.7);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.7);
+          showToast("🚗 轟隆隆！公車引擎發動！");
+        }
+      } catch (e) {
+        console.error("SFX Error:", e);
+      }
+    }
+
+    function stopAllAudio() {
+      if (currentAudioElement) {
+        currentAudioElement.pause();
+        currentAudioElement.currentTime = 0;
+        currentAudioElement = null;
+      }
+      const wave = document.getElementById('playingWave');
+      if (wave) wave.classList.add('hidden');
+
+      storyScenes.forEach((_, i) => {
+        const card = document.getElementById(`scene-card-${i}`);
+        if (card) {
+          card.classList.remove('ring-4', 'ring-amber-400', 'bg-amber-50/40');
+        }
+        const btn = document.getElementById(`play-btn-${i}`);
+        if (btn) {
+          btn.innerHTML = `<span>▶️</span> 播放演出`;
+          btn.classList.remove('bg-rose-600');
+          btn.classList.add('bg-slate-900');
+        }
+      });
+      currentPlayingIdx = -1;
+    }
+
+    function renderStoryScenes() {
+      const container = document.getElementById('scenesContainer');
+      container.innerHTML = storyScenes.map((scene, idx) => {
+        const isDriver = scene.role === 'driver';
+        const roleLabel = isDriver ? '30歲公車司機' : '12歲頑皮小鴿子';
+        const roleBadge = isDriver ? 'bg-sky-100 text-sky-900 border-sky-300' : 'bg-amber-100 text-amber-950 border-amber-300';
+        const roleTone = isDriver ? '穩重男中音' : (scene.id === 13 ? '狂暴吶喊男童' : (scene.id === 8 ? '飆速咆哮男童' : '俏皮童聲'));
+
+        return `
+        <div id="scene-card-${idx}" class="bg-white rounded-3xl p-5 border-2 border-slate-200 shadow-md hover:shadow-xl transition-all duration-300 relative flex flex-col justify-between">
+          <div>
+            <!-- Header Badges -->
+            <div class="flex items-center justify-between gap-2 mb-3">
+              <span class="text-xs font-black px-2.5 py-1 rounded-full border ${scene.badgeColor}">
+                ${scene.title}
+              </span>
+              <span class="text-xs font-bold px-2 py-0.5 rounded-lg border ${roleBadge} flex items-center gap-1 shadow-sm">
+                <span>${scene.charIcon}</span> ${roleLabel}
+              </span>
+            </div>
+
+            <!-- Dialogue Bubble -->
+            <div class="bg-slate-50 rounded-2xl p-4 border border-slate-200 mb-3 relative">
+              <div class="text-xs font-mono text-indigo-700 font-black mb-1 uppercase tracking-wide flex items-center justify-between">
+                <span>🇺🇸 莫·威廉斯原著英文</span>
+                <button onclick="playSingleSceneAudio(${idx}, 'en')" class="hover:underline text-[11px] text-indigo-600 font-sans font-bold flex items-center gap-1">
+                  <span>🔊</span> 聽英文原音
+                </button>
+              </div>
+              <p class="text-sm md:text-base font-bold text-slate-900 leading-snug font-cartoon">${scene.enText}</p>
+              
+              <div class="my-2.5 border-t border-slate-200"></div>
+
+              <div class="text-xs font-mono text-amber-800 font-black mb-1 uppercase tracking-wide flex items-center justify-between">
+                <span>🇹🇼 台灣繪本中文演繹</span>
+                <button onclick="playSingleSceneAudio(${idx}, 'zh')" class="hover:underline text-[11px] text-amber-700 font-sans font-bold flex items-center gap-1">
+                  <span>🔊</span> 聽中文演繹
+                </button>
+              </div>
+              <p class="text-sm md:text-base text-slate-800 font-semibold leading-relaxed">${scene.zhText}</p>
+            </div>
+
+            <!-- Director Prompt Guide -->
+            <div class="text-xs text-slate-600 bg-amber-50/80 p-2.5 rounded-xl border border-amber-200 flex items-start gap-2">
+              <span class="text-sm">🎬</span>
+              <div>
+                <strong class="text-amber-950 font-black">角色情感指導：</strong>
+                <span class="text-amber-900">${scene.directorPrompt}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom Actions -->
+          <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+            <span class="text-[11px] font-bold text-slate-400">
+              角色特色：${roleTone}
+            </span>
+
+            <button id="play-btn-${idx}" onclick="playScene(${idx})" class="text-xs md:text-sm font-black px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white shadow-md transition active:scale-95 flex items-center gap-1.5">
+              <span>▶️</span> 播放演出
+            </button>
+          </div>
+        </div>
+        `;
+      }).join('');
+    }
+
+    function setPlayMode(mode) {
+      currentPlayMode = mode;
+      ['zh', 'en', 'both'].forEach(m => {
+        const btn = document.getElementById(`mode-${m}`);
+        if (m === mode) {
+          btn.className = "px-2.5 py-1 text-xs md:text-sm font-black rounded-xl transition-all bg-white text-amber-900 shadow";
+        } else {
+          btn.className = "px-2.5 py-1 text-xs md:text-sm font-bold rounded-xl transition-all text-slate-600 hover:text-slate-900";
+        }
+      });
+
+      const modeNames = {
+        zh: "🇹🇼 純中文劇場",
+        en: "🇺🇸 純英文原著",
+        both: "🎭 雙語雙重奏（英文先講 ➔ 中文跟進表演）"
+      };
+      showToast(`已切換演出模式：\n【${modeNames[mode]}】`);
+    }
+
+    function playScene(idx) {
+      if (currentPlayingIdx === idx) {
+        stopAllAudio();
+        isAutoPlayingAll = false;
+        updateGlobalBtn();
+        updateStatus("已暫停演出。");
+        return;
+      }
+
+      stopAllAudio();
+      currentPlayingIdx = idx;
+      highlightScene(idx);
+
+      const scene = storyScenes[idx];
+
+      const onSceneFinished = () => {
+        unhighlightScene(idx);
+        if (isAutoPlayingAll && currentPlayingIdx < storyScenes.length - 1) {
+          setTimeout(() => {
+            playScene(currentPlayingIdx + 1);
+          }, 600);
+        } else {
+          isAutoPlayingAll = false;
+          updateGlobalBtn();
+          updateStatus("演出完成！可點選下一幕或連續播放全劇。");
+        }
+      };
+
+      try {
+        if (currentPlayMode === 'zh') {
+          updateStatus(`正在演出第 ${scene.id} 幕（中文）：【${scene.character}】`);
+          const url = getSceneAudioUrl(scene.id, 'zh');
+          playAudioUrl(url, onSceneFinished);
+        } else if (currentPlayMode === 'en') {
+          updateStatus(`正在演出第 ${scene.id} 幕（英文）：【${scene.character}】`);
+          const url = getSceneAudioUrl(scene.id, 'en');
+          playAudioUrl(url, onSceneFinished);
+        } else {
+          // 雙語雙重奏：英文先播，接著中文演繹
+          updateStatus(`第 ${scene.id} 幕雙語雙重奏（1/2 原著英文）：【${scene.character}】`);
+          const enUrl = getSceneAudioUrl(scene.id, 'en');
+          playAudioUrl(enUrl, () => {
+            if (currentPlayingIdx !== idx) return; // 使用者已中斷或切換
+            setTimeout(() => {
+              if (currentPlayingIdx !== idx) return;
+              updateStatus(`第 ${scene.id} 幕雙語雙重奏（2/2 中文演繹）：【${scene.character}】`);
+              const zhUrl = getSceneAudioUrl(scene.id, 'zh');
+              playAudioUrl(zhUrl, onSceneFinished);
+            }, 300);
+          });
+        }
+      } catch (err) {
+        console.error("Scene playback error:", err);
+        showToast("⚠️ 語音載入失敗，請確認 audio/ 資料夾內的音檔。");
+        unhighlightScene(idx);
+      }
+    }
+
+    function playSingleSceneAudio(idx, lang) {
+      stopAllAudio();
+      currentPlayingIdx = idx;
+      highlightScene(idx);
+      const scene = storyScenes[idx];
+      const langLabel = lang === 'zh' ? '中文' : '英文';
+
+      updateStatus(`正在播放第 ${scene.id} 幕【${langLabel}】：${scene.character}`);
+      const url = getSceneAudioUrl(scene.id, lang);
+      playAudioUrl(url, () => {
+        unhighlightScene(idx);
+        currentPlayingIdx = -1;
+        updateStatus("播放完畢。");
+      });
+    }
+
+    function highlightScene(idx) {
+      const card = document.getElementById(`scene-card-${idx}`);
+      if (card) {
+        card.classList.add('ring-4', 'ring-amber-400', 'bg-amber-50/40');
+        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      const btn = document.getElementById(`play-btn-${idx}`);
+      if (btn) {
+        btn.innerHTML = `<span>⏸️</span> 暫停演出`;
+        btn.classList.remove('bg-slate-900');
+        btn.classList.add('bg-rose-600');
+      }
+    }
+
+    function unhighlightScene(idx) {
+      const card = document.getElementById(`scene-card-${idx}`);
+      if (card) {
+        card.classList.remove('ring-4', 'ring-amber-400', 'bg-amber-50/40');
+      }
+      const btn = document.getElementById(`play-btn-${idx}`);
+      if (btn) {
+        btn.innerHTML = `<span>▶️</span> 播放演出`;
+        btn.classList.remove('bg-rose-600');
+        btn.classList.add('bg-slate-900');
+      }
+    }
+
+    function togglePlayAll() {
+      if (isAutoPlayingAll) {
+        stopAllAudio();
+        isAutoPlayingAll = false;
+        updateGlobalBtn();
+        updateStatus("已停止連續播放。");
+      } else {
+        isAutoPlayingAll = true;
+        updateGlobalBtn();
+        playScene(0);
+      }
+    }
+
+    function updateGlobalBtn() {
+      const icon = document.getElementById('globalPlayIcon');
+      const text = document.getElementById('globalPlayText');
+      const btn = document.getElementById('globalPlayBtn');
+      if (isAutoPlayingAll) {
+        icon.innerText = "⏹️";
+        text.innerText = "停止連續播放";
+        btn.classList.remove('bg-emerald-600', 'hover:bg-emerald-700');
+        btn.classList.add('bg-rose-600', 'hover:bg-rose-700');
+      } else {
+        icon.innerText = "▶️";
+        text.innerText = "連續播放全劇";
+        btn.classList.remove('bg-rose-600', 'hover:bg-rose-700');
+        btn.classList.add('bg-emerald-600', 'hover:bg-emerald-700');
+      }
+    }
+
+    function updateStatus(msg) {
+      const el = document.getElementById('statusMessage');
+      if (el) el.innerText = msg;
+    }
+
+    function showToast(msg, duration = 3000) {
+      const t = document.getElementById('toast');
+      if (!t) return;
+      t.innerText = msg;
+      t.classList.remove('hidden');
+      setTimeout(() => {
+        t.classList.add('hidden');
+      }, duration);
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      renderStoryScenes();
+    });
+  </script>
+</body>
+</html>
